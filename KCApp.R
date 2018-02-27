@@ -22,7 +22,8 @@ ui <- dashboardPage(skin = "blue",
      width=300,
       sidebarMenu(
          menuItem("Information",tabName="information",icon= icon("dashboard"),
-                  textInput("weight", label = "Weight (pounds)", value = ""))
+                  textInput("weight", label = "Weight (pounds)", value = ""),
+                  textInput("leglength", label = "Leg Length (inches)",value = ""))
           )
       ),
       
