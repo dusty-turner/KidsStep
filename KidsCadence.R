@@ -56,7 +56,7 @@ cor(data.frame(kidsraw$BMI_percentile,kidsraw$BMI_rawscore,kidsraw$BMI_zscore))
 
 ## linear dependencies  ## need to remove METSAdult and leglengthCM 
 findLinearCombos(numkids)
-numkids$
+#numkids$
 
 ggpairs(kids)
 ggpairs(numkids)
@@ -201,11 +201,15 @@ leapsnoncaret = regsubsets(Cadence_stepsmin~Sex+Age_years+Race+HeightCMAvg+Weigh
 leapsnoncaretsum = summary(leapsnoncaret)
 leapsnoncaretsum$bic
 leapsnoncaretsum$adjr2
+leapsnoncaretsum$which
 
 ##best model (BIC) 5 factors
 kids$Racelimited = ifelse(as.character(kids$Race)=="Other","Black or African American",as.character(kids$Race))
 fac5linmodel = lm(Cadence_stepsmin~Sex+Age_years+WaistCMAvg+Racelimited+Tanita.Avg_percentbodyfat, data = kids)
 summary(fac5linmodel)
+
+#Do a prediction using this model
+prediction=predict(fac5linmodel,data.frame(Sex="M",Age_years=14,WaistCMAvg=76,Racelimited="White",Tanita.Avg_percentbodyfat=21),interval="prediction",type="response")
 
 cv.fac5linmodel = train(Cadence_stepsmin~Sex+Age_years+WaistCMAvg+Racelimited+Tanita.Avg_percentbodyfat, method = "lm", data = kids, trControl = trainControl(method = "LOOCV"))
 summary(cv.fac5linmodel)

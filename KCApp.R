@@ -21,8 +21,9 @@ ui <- dashboardPage(skin = "blue",
    dashboardSidebar(
      width=300,
       sidebarMenu(
-         menuItem("Information",tabName="information",icon= icon("dashboard"),
-                  textInput("weight", label = "Weight (pounds)", value = ""),
+         menuItem("Information",tabName="information",icon= icon("dashboard"), startExpanded=TRUE,
+                  sliderInput("weight", label = "Weight (pounds)", min=25, max=300, value=40),
+                  sliderInput("weight", label = "Weight (pounds)", min=25, max=300, value=40),
                   textInput("leglength", label = "Leg Length (inches)",value = ""))
           )
       ),
