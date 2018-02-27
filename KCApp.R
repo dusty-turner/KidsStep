@@ -8,28 +8,30 @@
 #
 
 library(shiny)
+library(shinydashboard)
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+ui <- dashboardPage(skin = "blue",
    
    # Application title
-   titlePanel("Running Cadence and Speed"),
+   dashboardHeader(title="Running Cadence and Speed",
+                   titleWidth = 300),
    
    # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-      sidebarPanel(
-         sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
+   dashboardSidebar(
+     width=300,
+      sidebarMenu(
+         menuItem("Information",tabName="information",icon= icon("dashboard"),
+                  textInput("weight", label = "Weight (pounds)", value = ""))
+          )
       ),
       
       # Show a plot of the generated distribution
-      mainPanel(
-         plotOutput("distPlot")
+     dashboardBody(
+       tabItems(
+         tabItem(tabName="information")
       )
-   )
+    )
 )
 
 # Define server logic required to draw a histogram
