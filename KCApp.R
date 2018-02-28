@@ -22,9 +22,12 @@ ui <- dashboardPage(skin = "blue",
      width=300,
       sidebarMenu(
          menuItem("Information",tabName="information",icon= icon("dashboard"), startExpanded=TRUE,
+                  selectInput("sex",label="Gender",choices = c("Male"="M","Female"="F")),
+                  sliderInput("age", label = "Age (years)", min=1, max=30, value=10),
                   sliderInput("weight", label = "Weight (pounds)", min=25, max=300, value=40),
-                  sliderInput("weight", label = "Weight (pounds)", min=25, max=300, value=40),
-                  textInput("leglength", label = "Leg Length (inches)",value = ""))
+                  sliderInput("waist", label = "Waist Circumference (cms)", min=10, max=100, value=40),
+                  selectInput("race",label="Race",choices = c("White"="White","Other"="Other")),
+                  sliderInput("tanita", label = "Tanita Body Fat %", min=0, max=100, value=20))
           )
       ),
       
