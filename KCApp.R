@@ -27,7 +27,8 @@ ui <- dashboardPage(skin = "blue",
                   sliderInput("weight", label = "Weight (pounds)", min=25, max=300, value=40),
                   sliderInput("waist", label = "Waist Circumference (cms)", min=10, max=100, value=40),
                   selectInput("race",label="Race",choices = c("White"="White","Other"="Other")),
-                  sliderInput("tanita", label = "Tanita Body Fat %", min=0, max=100, value=20))
+                  sliderInput("tanita", label = "Tanita Body Fat %", min=0, max=100, value=20)),
+                  actionButton("submit", "Submit Information")
           )
       ),
       
@@ -42,6 +43,9 @@ ui <- dashboardPage(skin = "blue",
 # Define server logic required to draw a histogram
 server <- function(input, output) {
    
+  observeEvent(input$submit,{
+    preddf=data.frame(Sex=input$sex,Age_years=input$age,WaistCMAvg=input$waist,Racelimited=input$race,Tanita.Avg_percentbodyfat=input$tanita)
+  })
    output$distPlot <- renderPlot({
       # generate bins based on input$bins from ui.R
       x    <- faithful[, 2] 
