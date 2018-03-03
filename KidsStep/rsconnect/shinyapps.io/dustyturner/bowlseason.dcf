@@ -1,0 +1,12 @@
+name: bowlseason
+title: bowlseason
+username:
+account: dustyturner
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 244891
+bundleId: 1168550
+url: https://dustyturner.shinyapps.io/bowlseason/
+when: 1515503875.85807
+asMultiple: FALSE
+asStatic: FALSE
