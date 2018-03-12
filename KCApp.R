@@ -1,14 +1,22 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(shinydashboard)
+library(tidyverse)
+
+kidsraw = read_csv("CADENCE-Kids data.csv")
+
+kids = kidsraw %>%
+  filter(complete.cases(.)) %>% ## filter out 2 rows of missing data (only 1 subject) - not worth imputing IMO
+  mutate(Stage = as.factor(Stage), Sex = as.factor(Sex), Race = as.factor(Race),Agecat = as.factor(Agecat),Obese_status = as.factor(Obese_status)) %>%
+  group_by(id) %>%
+  top_n(1, TreadmillSpeed_MPH) %>%
+  ungroup() %>%
+  select(Sex, Age_years, Race, HeightCMAvg, WeightKGAvg, WaistCMAvg, Cadence_stepsmin, leglengthCM, Tanita.Avg_percentbodyfat, BMI_rawscore, Obese_status) ## removed because of high correlation with BMI and two linearly dependent variables
+
+kids$Race = ifelse(as.character(kids$Race)=="Black or African American","Other",as.character(kids$Race))
+mod = lm(Cadence_stepsmin~Sex+Age_years+WaistCMAvg+Race+Tanita.Avg_percentbodyfat, data = kids)
+pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Race = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
+
+
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(skin = "blue",
@@ -23,7 +31,7 @@ ui <- dashboardPage(skin = "blue",
       sidebarMenu(
          menuItem("Information",tabName="information",icon= icon("dashboard"), startExpanded=TRUE,
                   selectInput("sex",label="Gender",choices = c("Male"="M","Female"="F")),
-                  sliderInput("age", label = "Age (years)", min=1, max=30, value=10),
+                  sliderInput("age", label = "Age (years)", min=min(kids$Age_years), max=max(kids$Age_years), value=10),
                   sliderInput("weight", label = "Weight (pounds)", min=25, max=300, value=40),
                   sliderInput("waist", label = "Waist Circumference (cms)", min=10, max=100, value=40),
                   selectInput("race",label="Race",choices = c("White"="White","Other"="Other")),
@@ -34,26 +42,185 @@ ui <- dashboardPage(skin = "blue",
       
       # Show a plot of the generated distribution
      dashboardBody(
-       tabItems(
-         tabItem(tabName="information")
-      )
-    )
+       fluidRow(
+      #   tabItem(tabName="information",
+      #         tabPanel("All Selections",
+      #                     textOutput("modresultout2"))
+      #                     # plotOutput("ggplotout")))
+      # ),
+         
+   # box(title = "helpme", status = "primary", solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     tableOutput("modresultout2")),
+  
+   box(
+     title = "Gender Changes", status = "primary", solidHeader = TRUE,
+     collapsible = TRUE,
+     plotOutput("ggplotout",height=250, width=250)
+   ),
+
+   box(
+     title = "Age Changes", status = "primary", solidHeader = TRUE,
+     collapsible=TRUE,
+    # "Box content here", br(), "More box content",
+          plotOutput("ggplotout2", height = 250, width=250)
+      ),
+   
+   box(
+     title = "Waist Changes", status = "primary", solidHeader = TRUE,
+     collapsible=TRUE,
+     # "Box content here", br(), "More box content",
+     plotOutput("ggplotout3", height = 250, width=250)
+   )
+   
+     )
+     )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
    
-  observeEvent(input$submit,{
-    preddf=data.frame(Sex=input$sex,Age_years=input$age,WaistCMAvg=input$waist,Racelimited=input$race,Tanita.Avg_percentbodyfat=input$tanita)
+  # observeEvent(input$submit,{
+  #   preddf=data.frame(Sex=input$sex,Age_years=input$age,WaistCMAvg=input$waist,Racelimited=input$race,Tanita.Avg_percentbodyfat=input$tanita)
+  # })
+   # output$distPlot <- renderPlot({
+   #    # generate bins based on input$bins from ui.R
+   #    x    <- faithful[, 2] 
+   #    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+   #    
+   #    # draw the histogram with the specified number of bins
+   #    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+   # })
+  
+  # modresult <- reactive({
+  #   pred = predict.lm(mod, newdata = data.frame(Sex=input$sex, Age_years = input$age, WaistCMAvg = input$waist,Race = input$race, Tanita.Avg_percentbodyfat = input$tanita), interval = "prediction")
+  #   guesses = data.frame(
+  #     Sex = input$sex,
+  #     Age_years = input$age,
+  #     Race = input$race,
+  #     Tanita.Avg_percentbodyfat = input$tanita,
+  #     Waist = input$waist,
+  #     preds = pred[1],
+  #     predmin = pred[2],
+  #     predmax = pred[3],
+  #     # pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Racelimited = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
+  #     # Confidence = c(input$game1confidence),
+  #     stringsAsFactors = FALSE)
+  #   return(guesses)
+  #   
+  # })
+  
+  modresult <- reactive({
+    pred = predict.lm(mod, newdata = data.frame(Sex=c("M","F"), Age_years = rep(input$age,2), WaistCMAvg = rep(input$waist,2),Race = rep(input$race,2), Tanita.Avg_percentbodyfat = rep(input$tanita,2)), interval = "prediction")
+    guesses = data.frame(
+      # Sex = input$sex,
+      # Age_years = input$age,
+      # Race = input$race,
+      # Tanita.Avg_percentbodyfat = input$tanita,
+      # Waist = input$waist,
+      Sex = c("M","F"),
+      Age_years = rep(input$age,2),
+      Race = rep(input$race,2),
+      Tanita.Avg_percentbodyfat = rep(input$tanita,2),
+      Waist = rep(input$waist,2),
+      preds = pred[,1],
+      predmin = pred[,2],
+      predmax = pred[,3],
+      # pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Racelimited = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
+      # Confidence = c(input$game1confidence),
+      stringsAsFactors = FALSE)
+    return(guesses)
+    
   })
-   output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
-      
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-   })
+
+  modresult2 <- reactive({
+    pred = predict.lm(mod, newdata = data.frame(Sex=rep(input$sex,11), Age_years = c((input$age-5):(input$age+5)), WaistCMAvg = rep(input$waist,11),Race = rep(input$race,11), Tanita.Avg_percentbodyfat = rep(input$tanita,11)), interval = "prediction")
+    guesses = data.frame(
+      # Sex = input$sex,
+      # Age_years = input$age,
+      # Race = input$race,
+      # Tanita.Avg_percentbodyfat = input$tanita,
+      # Waist = input$waist,
+      Sex = rep(input$sex,11),
+      Age_years = c((input$age-5):(input$age+5)),
+      Race = rep(input$race,11),
+      Tanita.Avg_percentbodyfat = rep(input$tanita,11),
+      Waist = rep(input$waist,11),
+      preds = pred[,1],
+      predmin = pred[,2],
+      predmax = pred[,3],
+      # pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Racelimited = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
+      # Confidence = c(input$game1confidence),
+      stringsAsFactors = FALSE)
+    return(guesses)
+    
+  })
+  
+  modresult3<- reactive({
+    pred = predict.lm(mod, newdata = data.frame(Sex=rep(input$sex,11), Age_years = rep(input$age,11), WaistCMAvg = c((input$waist-5):(input$waist+5)),Race = rep(input$race,11), Tanita.Avg_percentbodyfat = rep(input$tanita,11)), interval = "prediction")
+    guesses = data.frame(
+      # Sex = input$sex,
+      # Age_years = input$age,
+      # Race = input$race,
+      # Tanita.Avg_percentbodyfat = input$tanita,
+      # Waist = input$waist,
+      Sex = rep(input$sex,11),
+      Age_years = rep(input$age,11),
+      Race = rep(input$race,11),
+      Tanita.Avg_percentbodyfat = rep(input$tanita,11),
+      Waist = c((input$waist-5):(input$waist+5)),
+      preds = pred[,1],
+      predmin = pred[,2],
+      predmax = pred[,3],
+      # pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Racelimited = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
+      # Confidence = c(input$game1confidence),
+      stringsAsFactors = FALSE)
+    return(guesses)
+    
+  })
+  
+  
+  output$modresultout = renderText(unlist(modresult()))
+  output$modresultout2 = renderTable(unlist(modresult2()))
+  
+  data = data.frame(x=c(1:10),y=(2:11))
+  
+  # output$ggplotout = renderPlot(
+  #   ggplot(aes(x=Age_years,y=preds), data = modresult()) +
+  #     geom_point() +
+  #     geom_errorbar(aes(ymin = predmin, ymax = predmax)) +
+  #     ylim(50,300) + xlim(min(kids$Age_years),(max(kids$Age_years))) +
+  #     xlab("Age") + ylab("Jogging Transition Prediction") + 
+  #     ggtitle("Jogging Transition as Age Changes")
+  # )
+  
+  output$ggplotout = renderPlot(
+    ggplot(aes(x=Sex,y=preds), data = modresult()) +
+      geom_point() +
+      geom_errorbar(aes(ymin = predmin, ymax = predmax)) +
+      ylim(50,300) + xlim("M","F") +
+      xlab("Gender") + ylab("Jogging Transition Prediction") + 
+      ggtitle("Jogging Transition as Gender Changes")
+  )
+  
+  output$ggplotout2 = renderPlot(
+    ggplot(aes(x=Age_years,y=preds), data = modresult2()) +
+      geom_point() +
+      geom_errorbar(aes(ymin = predmin, ymax = predmax)) +
+      ylim(50,300) + xlim((input$age-6),(input$age+6)) +
+      xlab("Age") + ylab("Jogging Transition Prediction") + 
+      ggtitle("Jogging Transition as Age Changes")
+  )
+  
+  output$ggplotout3 = renderPlot(
+    ggplot(aes(x=Waist,y=preds), data = modresult3()) +
+      geom_point() +
+      geom_errorbar(aes(ymin = predmin, ymax = predmax)) +
+      ylim(50,300) + xlim((input$waist-6),(input$waist+6)) +
+      xlab("Waist Circumference (cm)") + ylab("Jogging Transition Prediction") + 
+      ggtitle("Jogging Transition as Waist Circumference Changes")
+  )
+  
 }
 
 # Run the application 

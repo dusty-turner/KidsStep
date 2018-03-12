@@ -15,6 +15,13 @@ kids = kidsraw %>%
   ungroup() %>%
   select(Sex, Age_years, Race, HeightCMAvg, WeightKGAvg, WaistCMAvg, Cadence_stepsmin, leglengthCM, Tanita.Avg_percentbodyfat, BMI_rawscore, Obese_status) ## removed because of high correlation with BMI and two linearly dependent variables
 
+# From the APP
+kids$Race = ifelse(as.character(kids$Race)=="Black or African American","Other",as.character(kids$Race))
+mod = lm(Cadence_stepsmin~Sex+Age_years+WaistCMAvg+Race+Tanita.Avg_percentbodyfat, data = kids)
+pred = predict.lm(mod, newdata = data.frame(Sex=rep("M",10), Age_years = c(5:14), WaistCMAvg = rep(75,10),Race = rep("White",10), Tanita.Avg_percentbodyfat = rep(20,10)), interval = "prediction")
+pred
+
+
 ## Individual missing the data
 kidsraw %>%
   filter(!complete.cases(.)) %>%

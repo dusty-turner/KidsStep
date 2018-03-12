@@ -69,6 +69,8 @@ server <- function(input, output) {
       Tanita.Avg_percentbodyfat = input$bfpercent,
       Waist = input$waist,
       preds = pred[1],
+      predmin = pred[2],
+      predmax = pred[3],
       # pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Racelimited = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
       # Confidence = c(input$game1confidence),
       stringsAsFactors = FALSE)
@@ -84,7 +86,9 @@ server <- function(input, output) {
   
   output$ggplotout = renderPlot(
       ggplot(aes(x=Age_years,y=preds), data = modresult()) +
-      geom_point()
+      geom_point() +
+      geom_errorbar(aes(ymin = predmin, ymax = predmax)) +
+      ylim(50,300)
   )
 
 }
