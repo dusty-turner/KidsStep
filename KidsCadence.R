@@ -21,6 +21,7 @@ mod = lm(Cadence_stepsmin~Sex+Age_years+WaistCMAvg+Race+Tanita.Avg_percentbodyfa
 pred = predict.lm(mod, newdata = data.frame(Sex=rep("M",10), Age_years = c(5:14), WaistCMAvg = rep(75,10),Race = rep("White",10), Tanita.Avg_percentbodyfat = rep(20,10)), interval = "prediction")
 pred
 
+max(kids$WaistCMAvg)
 
 ## Individual missing the data
 kidsraw %>%

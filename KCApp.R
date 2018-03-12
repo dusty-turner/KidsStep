@@ -75,6 +75,20 @@ ui <- dashboardPage(skin = "blue",
    
      )
      )
+         
+   # box(
+   #   title = "Histogram", status = "primary", solidHeader = TRUE,
+   #   collapsible = FALSE,
+   #   plotOutput("ggplotout")
+   # ),
+   # 
+   # box(
+   #   title = "Inputs", status = "warning", solidHeader = TRUE,
+   #   "Box content here", br(), "More box content",
+   #   plotOutput("ggplotout", height = 250)
+   #    )
+   #   )
+   
 )
 
 # Define server logic required to draw a histogram
@@ -126,12 +140,10 @@ server <- function(input, output) {
       preds = pred[,1],
       predmin = pred[,2],
       predmax = pred[,3],
-      # pred = predict.lm(mod, newdata = data.frame(Sex="M", Age_years = 15, WaistCMAvg = 75,Racelimited = "White", Tanita.Avg_percentbodyfat = 20), interval = "prediction")
-      # Confidence = c(input$game1confidence),
       stringsAsFactors = FALSE)
     return(guesses)
-    
   })
+
 
   modresult2 <- reactive({
     pred = predict.lm(mod, newdata = data.frame(Sex=rep(input$sex,11), Age_years = c((input$age-5):(input$age+5)), WaistCMAvg = rep(input$waist,11),Race = rep(input$race,11), Tanita.Avg_percentbodyfat = rep(input$tanita,11)), interval = "prediction")
@@ -212,6 +224,20 @@ server <- function(input, output) {
       ggtitle("Jogging Transition as Age Changes")
   )
   
+  #output$modresultout = renderText(unlist(modresult()))
+  # output$modresultout = renderText(unlist(data))
+  
+  #data = data.frame(x=c(1:10),y=(2:11))
+  
+  # output$ggplotout = renderPlot(
+  #   ggplot(aes(x=Age_years,y=preds), data = modresult()) +
+  #     geom_point() +
+  #     geom_errorbar(aes(ymin = predmin, ymax = predmax)) +
+  #     ylim(50,300) + xlim(min(kids$Age_years),(max(kids$Age_years))) +
+  #     xlab("Age") + ylab("Jogging Transition Prediction") + 
+  #     ggtitle("Jogging Transition as Age Changes")
+  # )
+  
   output$ggplotout3 = renderPlot(
     ggplot(aes(x=Waist,y=preds), data = modresult3()) +
       geom_point() +
@@ -220,7 +246,7 @@ server <- function(input, output) {
       xlab("Waist Circumference (cm)") + ylab("Jogging Transition Prediction") + 
       ggtitle("Jogging Transition as Waist Circumference Changes")
   )
-  
+
 }
 
 # Run the application 
