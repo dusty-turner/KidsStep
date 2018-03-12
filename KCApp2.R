@@ -46,61 +46,77 @@ ui <- dashboardPage(skin = "blue",
       ),
       
       # Show a plot of the generated distribution
-   dashboardBody(fluidRow(
-     box(
-       title = "Age Changes",
-       status = "primary",
-       solidHeader = TRUE,
-       collapsible = TRUE,
-       # "Box content here", br(), "More box content",
-       plotOutput("ggplotout2")
-     ),
+   dashboardBody(
      
-     box(
-       title = "Weight Changes",
-       status = "primary",
-       solidHeader = TRUE,
-       collapsible = TRUE,
-       # "Box content here", br(), "More box content",
-       plotOutput("ggplotout5")
-     ),
+    
+       tabBox(
+         title = "Input Change Effects  (Current Estimate in Red)",
+         # The id lets us use input$tabset1 on the server to find the current tab
+         tabPanel("Age", plotOutput("ggplotout2")),
+         tabPanel("Weight", plotOutput("ggplotout5")),
+         tabPanel("Waist", plotOutput("ggplotout3")),
+         tabPanel("Body Fat", plotOutput("ggplotout4")),
+         tabPanel("Race", plotOutput("ggplotout6")),
+         tabPanel("Gender", plotOutput("ggplotout")),
+         width=12
+       )
+
      
-     box(
-       title = "Waist Changes",
-       status = "primary",
-       solidHeader = TRUE,
-       collapsible = TRUE,
-       # "Box content here", br(), "More box content",
-       plotOutput("ggplotout3")
-     ),
-     
-     box(
-       title = "Body Fat % Changes",
-       status = "primary",
-       solidHeader = TRUE,
-       collapsible = TRUE,
-       # "Box content here", br(), "More box content",
-       plotOutput("ggplotout4")
-     ),
-     
-     box(
-       title = "Gender Changes",
-       status = "primary",
-       solidHeader = TRUE,
-       collapsible = TRUE,
-       plotOutput("ggplotout")
-     ),
-     
-     box(
-       title = "Race Changes",
-       status = "primary",
-       solidHeader = TRUE,
-       collapsible = TRUE,
-       plotOutput("ggplotout6")
-     )
-     
-   ))
-   
+   #   fluidRow(
+   #   box(
+   #     title = "Age Changes",
+   #     status = "primary",
+   #     solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     # "Box content here", br(), "More box content",
+   #     plotOutput("ggplotout2")
+   #   ),
+   #   
+   #   box(
+   #     title = "Weight Changes",
+   #     status = "primary",
+   #     solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     # "Box content here", br(), "More box content",
+   #     plotOutput("ggplotout5")
+   #   ),
+   #   
+   #   box(
+   #     title = "Waist Changes",
+   #     status = "primary",
+   #     solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     # "Box content here", br(), "More box content",
+   #     plotOutput("ggplotout3")
+   #   ),
+   #   
+   #   box(
+   #     title = "Body Fat % Changes",
+   #     status = "primary",
+   #     solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     # "Box content here", br(), "More box content",
+   #     plotOutput("ggplotout4")
+   #   ),
+   #   
+   #   box(
+   #     title = "Gender Changes",
+   #     status = "primary",
+   #     solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     plotOutput("ggplotout")
+   #   ),
+   #   
+   #   box(
+   #     title = "Race Changes",
+   #     status = "primary",
+   #     solidHeader = TRUE,
+   #     collapsible = TRUE,
+   #     plotOutput("ggplotout6")
+   #   )
+   #   
+   # )
+   )
 )
 
 # Define server logic required to draw a histogram
@@ -134,6 +150,10 @@ server <- function(input, output) {
   #     stringsAsFactors = FALSE)
   #   return(guesses)
   #   
+  # })
+  
+  # output$tabset1Selected <- renderText({
+  #   input$tabset1
   # })
   
   output$progressBox <- renderValueBox({
