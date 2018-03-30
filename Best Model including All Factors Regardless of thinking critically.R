@@ -71,9 +71,9 @@ kidsbound = cbind(filteredDescr,kidsfac)
 
 library(leaps)
 
-names(kidsfinal)
+names(kidsbound)
 
-head(kidsfinal)
+head(kidsbound)
 
 dim(kidsfinal)
 ## use run cadence as the dependent variable -- took walk cadence out
@@ -90,4 +90,6 @@ summodel$outmat
 bestmod = lm(Run_Cadence~Tanita.Avg+BMIz+Run_VO2mlkgmin+Run_METSYouth3,data = kidsfinal)
 summary(bestmod)
 
+
+kidsfinal$Run_METSYouth1
 cor(kidsfinal$Tanita.Avg,kidsfinal$BMIz)
