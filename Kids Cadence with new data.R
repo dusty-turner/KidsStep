@@ -10,52 +10,54 @@ kids = kidsraw %>%
 
 names(kids)
 
-# ggpairs(kids[,-c(1)])
+kidslogical = kids%>%select(Run_Cadence,Sex, Age,Race,HeightCMAvg,WeightKGAvg,WaistAvg,BMIcont,BMIperc,BMIz, Obesecat)
 
-kidsnofac = kids%>%select(-id,-Sex,-Agecat,-Race,-Obesecat,-Walk_Stage,-Run_Stage,-Transitioned, -Transitioned_FullStage)
-# 
-# 
-# descrCor = cor(kidsnofac)>.9
-# highCorr <- sum(abs(descrCor[upper.tri(descrCor)]) > .9)
-# summary(descrCor[upper.tri(descrCor)])
-# 
-# names(kidsnofac)
-# 
-# highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
-# filteredDescr <- kidsnofac[,-highlyCorDescr]
-# 
-# str(filteredDescr)
-# 
-# descrCor2 <- cor(filteredDescr)
-# summary(descrCor2[upper.tri(descrCor2)])
-# 
-# kidsfinal = filteredDescr %>% bind_cols(kids%>%select(id,Sex,Agecat,Race,Obesecat,Walk_Stage,Run_Stage,Transitioned, Transitioned_FullStage))
-# ## HeightCMAvg -- SittingHeightAvg, Leglength
-# ## WeightKGAvg -- WaistAvg
-# setdiff(names(kids),names(kidsfinal))
+head(kidslogical)
 
-names(kidsnofac)
-comboInfo = findLinearCombos(kidsnofac)
+kidslogicalnofac = kidslogical %>% select(-Sex,-Race,-Obesecat)
 
-kidsnofac = kidsnofac[, -comboInfo$remove]
+comboInfo = findLinearCombos(kidslogicalnofac)
+
+# kidsnofac = kidsnofac[, -comboInfo$remove]
+# dim(kidsnofac)
 
 ####
 
-descrCor = cor(kidsnofac)>.9
+descrCor = cor(kidslogicalnofac)>.9
 highCorr <- sum(abs(descrCor[upper.tri(descrCor)]) > .9)
 summary(descrCor[upper.tri(descrCor)])
 # 
-names(kidsnofac)
+names(kidslogicalnofac)
+kidslogicalnofac$BMIcont
 # 
 highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
-# filteredDescr <- kidsnofac[,-highlyCorDescr]
+filteredDescr <- kidslogicalnofac[,-highlyCorDescr]
+dim(filteredDescr)
 # 
-# str(filteredDescr)
-# 
-# descrCor2 <- cor(filteredDescr)
-# summary(descrCor2[upper.tri(descrCor2)])
-# 
-# kidsfinal = filteredDescr %>% bind_cols(kids%>%select(id,Sex,Agecat,Race,Obesecat,Walk_Stage,Run_Stage,Transitioned, Transitioned_FullStage))
-# ## HeightCMAvg -- SittingHeightAvg, Leglength
-# ## WeightKGAvg -- WaistAvg
-# setdiff(names(kids),names(kidsfinal))
+
+names(filteredDescr)
+
+kidsfac = kids%>%select(Sex,Race,Obesecat)
+
+kidsfinal = cbind(filteredDescr,kidsfac)
+
+library(leaps)
+
+names(kidsfinal)
+
+head(kidsfinal)
+
+dim(kidsfinal)
+## use run cadence as the dependent variable -- took walk cadence out
+
+model = regsubsets(Run_Cadence~., data = kidsfinal)
+summodel = summary(model)
+summodel$bic
+
+summodel$outmat
+
+bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
+summary(bestmod4)
+bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz+Obesecat,data = kidsfinal)
+summary(bestmod4)
+
