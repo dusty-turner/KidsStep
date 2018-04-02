@@ -58,6 +58,9 @@ summodel$outmat
 
 bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 summary(bestmod4)
-bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz+Obesecat,data = kidsfinal)
-summary(bestmod4)
+# bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz+Obesecat,data = kidsfinal)
+# summary(bestmod4)
 
+library(car)
+residualPlots(bestmod4)
+qqPlot(bestmod4, distribution = "norm")
