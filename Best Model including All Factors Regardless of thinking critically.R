@@ -80,6 +80,8 @@ dim(kidsfinal)
 
 kidsfinal = kidsbound[,-c(7,8,16,19:22)]
 
+names(kidsfinal)
+
 model = regsubsets(Run_Cadence~., data = kidsfinal)
 summodel = summary(model)
 summodel$bic
@@ -93,3 +95,7 @@ summary(bestmod)
 
 kidsfinal$Run_METSYouth1
 cor(kidsfinal$Tanita.Avg,kidsfinal$BMIz)
+
+library(car)
+residualPlots(bestmod)
+qqPlot(bestmod, distribution = "norm")
