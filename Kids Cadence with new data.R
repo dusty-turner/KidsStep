@@ -60,12 +60,37 @@ summodel$bic
 
 summodel$outmat
 
-bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
+bestmod4 = lm(Run_Cadence~Age:Sex+HeightCMAvg+WeightKGAvg+BMIz:Sex,data = kidsfinal)
+bestmod4 = lm(Run_Cadence~HeightCMAvg+WeightKGAvg+BMIz+Age,data = kidsfinal)
+# bestmod4a = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 summary(bestmod4)
+summary(bestmod4a)
 # bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz+Obesecat,data = kidsfinal)
 # summary(bestmod4)
 
+AIC(bestmod4)
+
+plot(kidsfinal$BMIcont,kidsfinal$BMIz)
+
 predict.lm(bestmod4, newdata = kidsfinal, interval = "prediction")
+
+kidsfinal %>%
+  ggplot(aes(x=HeightCMAvg,y=Run_Cadence, color = Sex)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+kidsfinal %>%
+  ggplot(aes(x=WeightKGAvg,y=Run_Cadence, color = Sex)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+kidsfinal %>%
+  ggplot(aes(x=Age,y=Run_Cadence, color = Sex)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+kidsfinal %>%
+  ggplot(aes(x=BMIz,y=Run_Cadence, color = Sex)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
 
 summary(kidsfinal)
 
