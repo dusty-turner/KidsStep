@@ -8,8 +8,12 @@ kids = kidsraw %>%
   filter(Transitioned_FullStage==1) %>%
   mutate_if(is.character,as.factor)
 
+kids %>%
+  select(Run_Cadence,Transitioned_FullStage)
+
 names(kids)
 
+## selecting only things we can easily measure before 
 kidslogical = kids%>%select(Run_Cadence,Sex, Age,Race,HeightCMAvg,WeightKGAvg,WaistAvg,BMIcont,BMIperc,BMIz, Obesecat)
 
 head(kidslogical)
@@ -61,6 +65,10 @@ summary(bestmod4)
 # bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz+Obesecat,data = kidsfinal)
 # summary(bestmod4)
 
+predict.lm(bestmod4, newdata = kidsfinal, interval = "prediction")
+
+summary(kidsfinal)
+
 library(car)
-residualPlots(bestmod4)
+residualPlots(bestmod4, type = "rstudent")
 qqPlot(bestmod4, distribution = "norm")

@@ -41,6 +41,28 @@ comboInfo = findLinearCombos(kidsnofac)
 kidsnofac = kidsnofac[, -comboInfo$remove]
 dim(kidsnofac)
 
+## $linearCombos[[1]]
+# [1] 6 2 5
+#  Leglength, Height, Sitting height
+# $linearCombos[[2]]
+# [1] 13 12
+#  first run and last full stage
+# $linearCombos[[3]]
+# [1] 14 11
+# walk speed and last walk
+# $linearCombos[[4]]
+# [1] 17 16
+#  , Walk_METSAdult, Walk_VO2mlkgmin 
+# $linearCombos[[5]]
+# [1] 21 12
+# run speed, first run
+# $linearCombos[[6]]
+# [1] 24 23
+# Run_METSAdult, Run_VO2mlkgmin <dbl>
+# 
+# $remove
+# [1]  6 13 14 17 21 24
+# leg length, last full stage, walk speed, Walk_METSAdult, Run_Speed, Run_METSAdult
 ####
 
 descrCor = cor(kidsnofac)>.9
@@ -52,6 +74,10 @@ names(kidsnofac)
 highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
 filteredDescr <- kidsnofac[,-highlyCorDescr]
 dim(filteredDescr)
+
+# [1]  4  2  8 10 14 15 20
+# waistavg, height, bmiperc, lastwalk, walk_mets_youth2, run_metsyouth2
+
 # 
 # str(filteredDescr)
 # 
@@ -81,7 +107,7 @@ dim(kidsfinal)
 kidsfinal = kidsbound[,-c(7,8,16,19:22)]
 
 names(kidsfinal)
-
+library(leaps)
 model = regsubsets(Run_Cadence~., data = kidsfinal)
 summodel = summary(model)
 summodel$bic
