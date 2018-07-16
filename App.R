@@ -11,8 +11,8 @@ kids = kidsraw %>%
 
 mod = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kids)
 
-pymin=min(kids$Run_Cadence)-100
-pymax=max(kids$Run_Cadence)+100
+pymin=min(kids$Run_Cadence)-100-100
+pymax=max(kids$Run_Cadence)+100+100
 
 ui <- dashboardPage(skin = "blue",
    
@@ -29,7 +29,8 @@ ui <- dashboardPage(skin = "blue",
          menuItem("Information",tabName="information",icon= icon("dashboard"), startExpanded=TRUE,
                   sliderInput("age", label = "Age (years)", min=min(kids$Age), max=max(kids$Age), value=10, step=1),
                   sliderInput("weight", label = "Weight (kgs)", min(kids$WeightKGAvg), max=max(kids$WeightKGAvg), value=40),
-                  sliderInput("BMIz", label = "BMIz", min=min(kids$BMIz), max=max(kids$BMIz), value=0),
+                  # sliderInput("bmiz", label = "BMIz", min=min(kids$BMIz), max=max(kids$BMIz), step = .05,value=0),
+                  sliderInput("bmiz", label = "BMIz", min=round(min(kids$BMIz),2), max=round(max(kids$BMIz),2),value=0),
                   sliderInput("height", label = "Height", min=min(kids$HeightCMAvg), max=max(kids$HeightCMAvg), value=mean(kids$HeightCMAvg)))
                   #valueBoxOutput("progressBox")
 
@@ -71,6 +72,7 @@ ui <- dashboardPage(skin = "blue",
        solidHeader = TRUE,
        collapsible = TRUE,
        # "Box content here", br(), "More box content",
+       # tableOutput("progressBoxub1"),
        plotOutput("ggplotout3")
      ),
 
@@ -80,7 +82,7 @@ ui <- dashboardPage(skin = "blue",
        solidHeader = TRUE,
        collapsible = TRUE,
        # "Box content here", br(), "More box content",
-       # tableOutput("progressBoxub1"),
+
        plotOutput("ggplotout4")
      )
    )
@@ -109,16 +111,16 @@ server <- function(input, output) {
     )
   })
   # output$progressBoxub1 <- renderTable({
-  #     modresult4()
+  #     modresult3()
   #     # paste(round(modresult()[6,6]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
   # })
 
 
   modresult <- reactive({
-    pred = predict.lm(mod, newdata = data.frame(Age = c((input$age-5):(input$age+5)), WeightKGAvg = rep(input$weight,11), BMIz = rep(input$BMIz,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
+    pred = predict.lm(mod, newdata = data.frame(Age = c((input$age-5):(input$age+5)), WeightKGAvg = rep(input$weight,11), BMIz = rep(input$bmiz,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
     guesses = data.frame(
       Age = c((input$age-5):(input$age+5)),
-      BMIz = rep(input$BMIz,11),
+      BMIz = rep(input$bmiz,11),
       Weight = rep(input$weight,11),
       Height = rep(input$height),
       preds = pred[,1],
@@ -129,10 +131,10 @@ server <- function(input, output) {
   })
 
   modresult2 <- reactive({
-    pred = predict.lm(mod, newdata = data.frame(Age = rep(input$age), WeightKGAvg =  c((input$weight-5):(input$weight+5)), BMIz = rep(input$BMIz,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
+    pred = predict.lm(mod, newdata = data.frame(Age = rep(input$age), WeightKGAvg =  c((input$weight-5):(input$weight+5)), BMIz = rep(input$bmiz,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
     guesses = data.frame(
       Age = rep(input$age,11),
-      BMIz = rep(input$BMIz,11),
+      BMIz = rep(input$bmiz,11),
       Weight = c((input$weight-5):(input$weight+5)),
       Height = rep(input$height),
       preds = pred[,1],
@@ -143,10 +145,10 @@ server <- function(input, output) {
   })
 
   modresult3 <- reactive({
-    pred = predict.lm(mod, newdata = data.frame(Age = rep(input$age), WeightKGAvg = rep(input$weight,11) , BMIz = c((input$BMIz-5):(input$BMIz+5)), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
+    pred = predict.lm(mod, newdata = data.frame(Age = rep(input$age), WeightKGAvg = rep(input$weight,11) , BMIz = c((input$bmiz-5):(input$bmiz+5)), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
     guesses = data.frame(
       Age = rep(input$age,11),
-      BMIz = c((input$BMIz-5):(input$BMIz+5)),
+      BMIz = c((input$bmiz-5):(input$bmiz+5)),
       Weight = rep(input$weight,11),
       Height = rep(input$height),
       preds = pred[,1],
@@ -157,10 +159,10 @@ server <- function(input, output) {
   })
 
   modresult4 <- reactive({
-    pred = predict.lm(mod, newdata = data.frame(Age = rep(input$age), WeightKGAvg = rep(input$weight,11) , BMIz = rep(input$BMIz,11), HeightCMAvg = c((input$height-5):(input$height+5))), interval = "prediction", level=.95)
+    pred = predict.lm(mod, newdata = data.frame(Age = rep(input$age), WeightKGAvg = rep(input$weight,11) , BMIz = rep(input$bmiz,11), HeightCMAvg = c((input$height-5):(input$height+5))), interval = "prediction", level=.95)
     guesses = data.frame(
       Age = rep(input$age,11),
-      BMIz = rep(input$BMIz,11),
+      BMIz = rep(input$bmiz,11),
       Weight = rep(input$weight,11),
       Height = c((input$height-5):(input$height+5)),
       preds = pred[,1],
@@ -210,9 +212,9 @@ server <- function(input, output) {
       geom_point() +
       geom_line(aes(y=predmin)) +
       geom_line(aes(y=predmax)) +
-      geom_point(aes(x=input$BMIz,y=preds[which(BMIz==input$BMIz)]), color="red")+
-      geom_errorbar(aes(x=input$BMIz,ymin = predmin[which(BMIz==input$BMIz)], ymax = predmax[which(BMIz==input$BMIz)]),color="dark red") +
-      ylim(pymin,pymax) + xlim((input$BMIz-5),(input$BMIz+5)) +
+      geom_point(aes(x=input$bmiz,y=preds[which(BMIz==input$bmiz)]), color="red")+
+      geom_errorbar(aes(x=input$bmiz,ymin = predmin[which(BMIz==input$bmiz)], ymax = predmax[which(BMIz==input$bmiz)]),color="dark red") +
+      ylim(pymin,pymax) + xlim((input$bmiz-5),(input$bmiz+5)) +
       xlab("BMIz") + ylab("Jogging Transition Prediction") +
       ggtitle("Jogging Transition as BMI Changes")
   )
