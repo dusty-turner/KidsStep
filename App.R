@@ -279,7 +279,20 @@ server <- function(input, output) {
       xlab("Gender") + ylab("Jogging Transition Prediction") +
       ggtitle("Jogging Transition as Gender Changes")
   )
-  
+
+  # output$ggplotout3 = renderPlot(
+  #   ggplot(aes(x=BMIz,y=preds), data = modresult3()) +
+  #     geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
+  #     geom_point() +
+  #     geom_line(aes(y=predmin)) +
+  #     geom_line(aes(y=predmax)) +
+  #     geom_point(aes(x=input$BMIz,y=preds[which(BMIz==input$BMIz)]), color="red")+
+  #     geom_errorbar(aes(x=input$BMIz,ymin = predmin[which(BMIz==input$BMIz)], ymax = predmax[which(BMIz==input$BMIz)]),color="dark red") +
+  #     ylim(pymin,pymax) + xlim((input$BMIz-5),(input$BMIz+5)) +
+  #     xlab("BMIz") + ylab("Jogging Transition Prediction") +
+  #     ggtitle("Jogging Transition as BMI Changes")
+  # )
+
   output$ggplotout4 = renderPlot(
     ggplot(aes(x=Height,y=preds), data = modresult4()) +
       geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
