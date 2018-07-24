@@ -11,6 +11,13 @@ kids = kidsraw %>%
 kids %>%
   select(Run_Cadence,Transitioned_FullStage)
 
+hist(kids$BMIz)
+(kids$BMIcont-mean(kids$BMIcont))/sd(kids$BMIcont)
+lm(kids$BMIz~
+kids$BMIcont)
+plot(kids$BMIz~
+kids$BMIcont)
+
 names(kids)
 
 ## selecting only things we can easily measure before 
