@@ -24,7 +24,7 @@ names(kids)
 
 ## selecting only things we can easily measure before 
 kidslogical = kids%>%select(Run_Cadence,Sex, Age,Race,HeightCMAvg,WeightKGAvg,WaistAvg,BMIcont,BMIperc,BMIz, Obesecat)
-
+summary(kidslogical)
 head(kidslogical)
 
 kidslogicalnofac = kidslogical %>% select(-Sex,-Race,-Obesecat)
@@ -53,7 +53,7 @@ names(filteredDescr)
 kidsfac = kids%>%select(Sex,Race,Obesecat)
 
 kidsfinal = cbind(filteredDescr,kidsfac)
-
+names(kidsfinal)
 library(leaps)
 
 names(kidsfinal)
@@ -63,17 +63,18 @@ head(kidsfinal)
 dim(kidsfinal)
 ## use run cadence as the dependent variable -- took walk cadence out
 
-model = regsubsets(Run_Cadence~., data = kidsfinal)
+model = regsubsets(Run_Cadence~., data = kidsfinal, method = "exhaustive")
 summodel = summary(model)
 summodel$bic
 
 summodel$outmat
 
-bestmod4 = lm(Run_Cadence~Age:Sex+HeightCMAvg+WeightKGAvg+BMIz:Sex,data = kidsfinal)
-bestmod4a = lm(Run_Cadence~HeightCMAvg+WeightKGAvg+BMIz+Age,data = kidsfinal)
+# bestmod4 = lm(Run_Cadence~Age:Sex+HeightCMAvg+WeightKGAvg+BMIz:Sex,data = kidsfinal)
+bestmod4 = lm(Run_Cadence~HeightCMAvg+WeightKGAvg+BMIz+Age,data = kidsfinal)
 # bestmod4a = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 summary(bestmod4)
-summary(bestmod4a)
+# summary(bestmod4a)
+
 # bestmod4 = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz+Obesecat,data = kidsfinal)
 # summary(bestmod4)
 
@@ -82,6 +83,8 @@ AIC(bestmod4)
 plot(kidsfinal$BMIcont,kidsfinal$BMIz)
 
 predict.lm(bestmod4, newdata = kidsfinal, interval = "prediction")
+predsbest = predict.lm(bestmod4, newdata = kidsfinal)
+postResample(predsbest,kidsfinal$Run_Cadence)
 
 kidsfinal %>%
   ggplot(aes(x=HeightCMAvg,y=Run_Cadence, color = Sex)) +
