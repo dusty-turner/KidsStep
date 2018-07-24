@@ -1,8 +1,10 @@
 library(tidyverse)  
 library(GGally)
 library(caret)
+library(AGD)
 options(scipen=999)
 kidsraw = read_csv("Predict_Running_Transition_Final.csv")
+kidsjoin = read_csv("Predict_Running_Transition_BMIz_Data.csv")
 
 kids = kidsraw %>%
   filter(Transitioned_FullStage==1) %>%

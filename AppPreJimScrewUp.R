@@ -267,7 +267,6 @@ server <- function(input, output) {
   #     ggtitle("Jogging Transition as BMI Changes")
   # )
   
-<<<<<<< HEAD
   output$ggplotout3 = renderPlot(
     ggplot(aes(x=c("Male","Female"),y=preds), data = modresult5()) +
       geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
@@ -280,7 +279,7 @@ server <- function(input, output) {
       xlab("Gender") + ylab("Jogging Transition Prediction") +
       ggtitle("Jogging Transition as Gender Changes")
   )
-=======
+
   # output$ggplotout3 = renderPlot(
   #   ggplot(aes(x=BMIz,y=preds), data = modresult3()) +
   #     geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
@@ -293,7 +292,6 @@ server <- function(input, output) {
   #     xlab("BMIz") + ylab("Jogging Transition Prediction") +
   #     ggtitle("Jogging Transition as BMI Changes")
   # )
->>>>>>> e04322fd8c08ef70c9558347c197f3c0c331bd5e
   
   output$ggplotout4 = renderPlot(
     ggplot(aes(x=Height,y=preds), data = modresult4()) +
