@@ -69,7 +69,11 @@ summodel$bic
 
 summodel$outmat
 
+<<<<<<< HEAD
 # bestmod4 = lm(Run_Cadence~Age:Sex+HeightCMAvg+WeightKGAvg+BMIz:Sex,data = kidsfinal)
+=======
+bestmod4 = lm(Run_Cadence~Age:Sex+HeightCMAvg+WeightKGAvg+BMIz:Sex,data = kidsfinal)
+>>>>>>> 4dd0035015ed8ec8ee09831b6018aa7371416314
 bestmod4 = lm(Run_Cadence~HeightCMAvg+WeightKGAvg+BMIz+Age,data = kidsfinal)
 # bestmod4a = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 summary(bestmod4)

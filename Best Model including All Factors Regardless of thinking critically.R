@@ -118,6 +118,10 @@ summodel$outmat
 bestmod = lm(Run_Cadence~Tanita.Avg+BMIz+Run_VO2mlkgmin+Run_METSYouth3,data = kidsfinal)
 summary(bestmod)
 
+library(caret)
+preds = predict.lm(bestmod,newdata = kidsfinal)
+postResample(preds, kidsfinal$Run_Cadence)
+
 
 kidsfinal$Run_METSYouth1
 cor(kidsfinal$Tanita.Avg,kidsfinal$BMIz)
@@ -125,3 +129,4 @@ cor(kidsfinal$Tanita.Avg,kidsfinal$BMIz)
 library(car)
 residualPlots(bestmod)
 qqPlot(bestmod, distribution = "norm")
+
