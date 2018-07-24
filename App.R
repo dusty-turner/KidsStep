@@ -18,6 +18,7 @@ pymin=min(kids$Run_Cadence)-100
 pymax=max(kids$Run_Cadence)+100
 
 ui <- dashboardPage(skin = "blue",
+<<<<<<< HEAD
    
    # Application title
    dashboardHeader(title="Running Cadence and Speed",
@@ -92,11 +93,87 @@ ui <- dashboardPage(skin = "blue",
      )
    )
    )
+=======
+                    
+                    # Application title
+                    dashboardHeader(title="Running Cadence and Speed",
+                                    titleWidth = 300),
+                    
+                    # Sidebar with a slider input for number of bins 
+                    dashboardSidebar(
+                      width=300,
+                      
+                      sidebarMenu(
+                        
+                        menuItem("Information",tabName="information",icon= icon("dashboard"), startExpanded=TRUE,
+                                 sliderInput("age", label = "Age (years)", min=min(kids$Age), max=max(kids$Age), value=10, step=.5),
+                                 sliderInput("weight", label = "Weight (kgs)", min(kids$WeightKGAvg), max=max(kids$WeightKGAvg), value=40),
+                                 radioButtons("gender", label = "Gender", choiceNames = list("Male","Female"), choiceValues = list("M","F"), inline = TRUE),
+                                 #sliderInput("BMIz", label = "BMIz", min=min(kids$BMIz), max=max(kids$BMIz), value=0),
+                                 sliderInput("height", label = "Height (cms)", min=min(kids$HeightCMAvg), max=max(kids$HeightCMAvg), value=mean(kids$HeightCMAvg)))
+                        #valueBoxOutput("progressBox")
+                        
+                      ),
+                      valueBoxOutput("progressBoxBMI", width=12),       
+                      valueBoxOutput("progressBoxBMIz", width=12),
+                      valueBoxOutput("progressBoxlb", width=12),
+                      valueBoxOutput("progressBox", width=12),
+                      valueBoxOutput("progressBoxub", width=12)
+                      
+                    ),
+                    
+                    # Show a plot of the generated distribution
+                    dashboardBody(
+                      
+                      headerPanel("Current Estimate in Red"),
+                      
+                      fluidRow(
+                        box(
+                          title = "Age Changes",
+                          status = "primary",
+                          solidHeader = TRUE,
+                          collapsible = TRUE,
+                          # "Box content here", br(), "More box content",
+                          plotOutput("ggplotout")
+                          
+                        ),
+                        
+                        box(
+                          title = "Weight Changes",
+                          status = "primary",
+                          solidHeader = TRUE,
+                          collapsible = TRUE,
+                          # "Box content here", br(), "More box content",
+                          plotOutput("ggplotout2")
+                        ),
+                        
+                        box(
+                          title = "Gender Changes",
+                          status = "primary",
+                          solidHeader = TRUE,
+                          collapsible = TRUE,
+                          # "Box content here", br(), "More box content",
+                          # tableOutput("table1"),
+                          plotOutput("ggplotout3")
+                        ),
+                        
+                        box(
+                          title = "Height Changes",
+                          status = "primary",
+                          solidHeader = TRUE,
+                          collapsible = TRUE,
+                          # "Box content here", br(), "More box content",
+                          # tableOutput("progressBoxub1"),
+                          plotOutput("ggplotout4")
+                        )
+                      )
+                    )
+>>>>>>> a3c8495afca269ed6ca8360f703e1ab98956bbaa
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+  
   output$progressBoxBMI <- renderValueBox({
     valueBox(
       round(modresult()[6,8],3), "BMI",icon = icon("thumbs-up", lib = "glyphicon"),
@@ -110,7 +187,7 @@ server <- function(input, output) {
       color = "blue"
     )
   })
-
+  
   output$progressBoxlb <- renderValueBox({
     valueBox(
       paste(round(modresult()[6,6]),"Steps"), "Lower Bound",icon = icon("thumbs-up", lib = "glyphicon"),
@@ -130,13 +207,16 @@ server <- function(input, output) {
     )
   })
   # output$progressBoxub1 <- renderTable({
-  #     modresult3()
+  #     modresult4()
   #     # paste(round(modresult()[6,6]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
   # })
-
-
+  
+  
   modresult <- reactive({
+<<<<<<< HEAD
 
+=======
+>>>>>>> a3c8495afca269ed6ca8360f703e1ab98956bbaa
     BMItemp=input$weight/(input$height/100)^2
     BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
     pred = predict.lm(mod, newdata = data.frame(Age = c((input$age-5):(input$age+5)), WeightKGAvg = rep(input$weight,11), BMIz =rep(BMIzcalc,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
@@ -153,7 +233,7 @@ server <- function(input, output) {
       stringsAsFactors = FALSE)
     return(guesses)
   })
-
+  
   modresult2 <- reactive({
     BMItemp=input$weight/(input$height/100)^2
     BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
@@ -170,7 +250,7 @@ server <- function(input, output) {
       stringsAsFactors = FALSE)
     return(guesses)
   })
-
+  
   modresult3 <- reactive({
     BMItemp=input$weight/(input$height/100)^2
     BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
@@ -187,7 +267,7 @@ server <- function(input, output) {
       stringsAsFactors = FALSE)
     return(guesses)
   })
-
+  
   modresult4 <- reactive({
     BMItemp=input$weight/(input$height/100)^2
     BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
@@ -204,7 +284,11 @@ server <- function(input, output) {
       stringsAsFactors = FALSE)
     return(guesses)
   })
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> a3c8495afca269ed6ca8360f703e1ab98956bbaa
   modresult5 <- reactive({
     BMItemp=input$weight/(input$height/100)^2
     BMIzcalcM=y2z(BMItemp,input$age,sex="M",ref=cdc.bmi)
@@ -218,6 +302,10 @@ server <- function(input, output) {
       preds = pred[,1],
       predmin = pred[,2],
       predmax = pred[,3],
+<<<<<<< HEAD
+=======
+      gender = c("M","F"),
+>>>>>>> a3c8495afca269ed6ca8360f703e1ab98956bbaa
       BMI=BMItemp,
       stringsAsFactors = FALSE)
     return(guesses)
@@ -229,7 +317,7 @@ server <- function(input, output) {
   # 
   # data = data.frame(x=c(1:10),y=(2:11))
   
-
+  
   output$ggplotout = renderPlot(
     ggplot(aes(x=Age,y=preds), data = modresult()) +
       geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
@@ -242,7 +330,7 @@ server <- function(input, output) {
       xlab("Age") + ylab("Jogging Transition Prediction") +
       ggtitle("Jogging Transition as Age Changes")
   )
-
+  
   output$ggplotout2 = renderPlot(
     ggplot(aes(x=Weight,y=preds), data = modresult2()) +
       geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
@@ -255,22 +343,11 @@ server <- function(input, output) {
       xlab("Weight") + ylab("Jogging Transition Prediction") +
       ggtitle("Jogging Transition as Weight Changes")
   )
-  # 
-  # output$ggplotout3 = renderPlot(
-  #   ggplot(aes(x=BMIz,y=preds), data = modresult3()) +
-  #     geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
-  #     geom_point() +
-  #     geom_line(aes(y=predmin)) +
-  #     geom_line(aes(y=predmax)) +
-  #     geom_point(aes(x=input$BMIz,y=preds[which(BMIz==input$BMIz)]), color="red")+
-  #     geom_errorbar(aes(x=input$BMIz,ymin = predmin[which(BMIz==input$BMIz)], ymax = predmax[which(BMIz==input$BMIz)]),color="dark red") +
-  #     ylim(pymin,pymax) + xlim((input$BMIz-5),(input$BMIz+5)) +
-  #     xlab("BMIz") + ylab("Jogging Transition Prediction") +
-  #     ggtitle("Jogging Transition as BMI Changes")
-  # )
+
   
   output$ggplotout3 = renderPlot(
     ggplot(aes(x=c("Male","Female"),y=preds), data = modresult5()) +
+<<<<<<< HEAD
 
  # output$ggplotout3 = renderPlot(
   #  ggplot(aes(x=BMIz,y=preds), data = modresult3()) +
@@ -306,6 +383,21 @@ server <- function(input, output) {
   #     xlab("BMIz") + ylab("Jogging Transition Prediction") +
   #     ggtitle("Jogging Transition as BMI Changes")
   # )
+=======
+      # geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
+      geom_point() +
+      # geom_line(aes(y=predmin)) +
+      # geom_line(aes(y=predmax)) +
+      #geom_point(aes(x=input$gender,y=preds[which(BMIz==input$BMIz)]), color="red")+
+      geom_errorbar(aes(x=c("Male","Female"),ymin = predmin[which(gender==c("M","F"))], ymax = predmax[which(gender==c("M","F"))]),color="dark red") +
+      # geom_errorbar(aes(x=input$gender,ymin = predmin[which(gender=="M")], ymax = predmax[which(gender=="M")]),color="dark red") +
+      ylim(pymin,pymax)  +
+      xlab("Gender") + ylab("Jogging Transition Prediction") +
+      ggtitle("Jogging Transition as Gender Changes")
+  )
+  
+  # output$table1 = renderTable(modresult5())
+>>>>>>> a3c8495afca269ed6ca8360f703e1ab98956bbaa
 
   output$ggplotout4 = renderPlot(
     ggplot(aes(x=Height,y=preds), data = modresult4()) +
@@ -320,10 +412,10 @@ server <- function(input, output) {
       ggtitle("Jogging Transition as Height Changes")
   )
   
-
-
-
-
+  
+  
+  
+  
 }
 
 # Run the application 

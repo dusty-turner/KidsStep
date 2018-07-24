@@ -104,3 +104,27 @@ summary(kidsfinal)
 library(car)
 residualPlots(bestmod4, type = "rstudent")
 qqPlot(bestmod4, distribution = "norm")
+
+
+############## validation of bmiz command
+
+kidsraw$BMIz
+kidsraw$Bm
+names(kidsraw)
+kidsraw %>%
+  mutate(BMIDerived = (WeightKGAvg)/(HeightCMAvg/100)^2) %>%
+  select(id, WeightKGAvg,HeightCMAvg, Age, Sex,BMIDerived, BMIcont,BMIz) %>%
+  mutate(BMIzDerived = y2z(BMIDerived,Age,sex=Sex,ref=cdc.bmi)) %>%
+  mutate(difference = BMIz-BMIzDerived) %>%
+  left_join(kidsjoin %>% select(id, Age_Decimal), by = "id") %>%
+  mutate(BMIzDerived2 = y2z(BMIDerived,Age_Decimal,sex=Sex,ref=cdc.bmi)) %>%
+  select(BMIz,BMIzDerived,BMIzDerived2)
+
+  
+data("cdc.bmi")
+cdc.bmi
+kidsraw$id
+dim(kidsraw)
+
+
+mod = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kids)
