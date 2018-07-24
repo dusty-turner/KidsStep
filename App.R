@@ -77,6 +77,7 @@ ui <- dashboardPage(skin = "blue",
        solidHeader = TRUE,
        collapsible = TRUE,
        # "Box content here", br(), "More box content",
+       # tableOutput("progressBoxub1"),
        plotOutput("ggplotout3")
      ),
 
@@ -86,7 +87,7 @@ ui <- dashboardPage(skin = "blue",
        solidHeader = TRUE,
        collapsible = TRUE,
        # "Box content here", br(), "More box content",
-       # tableOutput("progressBoxub1"),
+
        plotOutput("ggplotout4")
      )
    )
@@ -129,12 +130,13 @@ server <- function(input, output) {
     )
   })
   # output$progressBoxub1 <- renderTable({
-  #     modresult4()
+  #     modresult3()
   #     # paste(round(modresult()[6,6]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
   # })
 
 
   modresult <- reactive({
+
     BMItemp=input$weight/(input$height/100)^2
     BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
     pred = predict.lm(mod, newdata = data.frame(Age = c((input$age-5):(input$age+5)), WeightKGAvg = rep(input$weight,11), BMIz =rep(BMIzcalc,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
@@ -269,10 +271,14 @@ server <- function(input, output) {
   
   output$ggplotout3 = renderPlot(
     ggplot(aes(x=c("Male","Female"),y=preds), data = modresult5()) +
+
+ # output$ggplotout3 = renderPlot(
+  #  ggplot(aes(x=BMIz,y=preds), data = modresult3()) +
       geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
       geom_point() +
       geom_line(aes(y=predmin)) +
       geom_line(aes(y=predmax)) +
+
       #geom_point(aes(x=input$gender,y=preds[which(BMIz==input$BMIz)]), color="red")+
       #geom_errorbar(aes(x=input$gender,ymin = predmin[which(BMIz==input$BMIz)], ymax = predmax[which(BMIz==input$BMIz)]),color="dark red") +
       ylim(pymin,pymax)  +
@@ -280,6 +286,14 @@ server <- function(input, output) {
       ggtitle("Jogging Transition as Gender Changes")
   )
 
+
+      geom_point(aes(x=input$bmiz,y=preds[which(BMIz==input$bmiz)]), color="red")+
+      geom_errorbar(aes(x=input$bmiz,ymin = predmin[which(BMIz==input$bmiz)], ymax = predmax[which(BMIz==input$bmiz)]),color="dark red") +
+      ylim(pymin,pymax) + xlim((input$bmiz-5),(input$bmiz+5)) +
+      xlab("BMIz") + ylab("Jogging Transition Prediction") +
+      ggtitle("Jogging Transition as BMI Changes")
+  )
+  
   # output$ggplotout3 = renderPlot(
   #   ggplot(aes(x=BMIz,y=preds), data = modresult3()) +
   #     geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
