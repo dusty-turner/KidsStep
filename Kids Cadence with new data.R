@@ -13,12 +13,13 @@ kids = kidsraw %>%
 kids %>%
   select(Run_Cadence,Transitioned_FullStage)
 
-hist(kids$BMIz)
-(kids$BMIcont-mean(kids$BMIcont))/sd(kids$BMIcont)
-lm(kids$BMIz~
-kids$BMIcont)
-plot(kids$BMIz~
-kids$BMIcont)
+## Stuff for participants part of paper
+dim(kids)
+skimr::skim(kidsraw$Sex)
+kids %>%
+  group_by(Sex) %>%
+  summarise(sd(Age),mean(Age),sd(BMIcont),mean(BMIcont),sd(Run_Cadence),mean(Run_Cadence),n())
+# (kids$BMIcont-mean(kids$BMIcont))/sd(kids$BMIcont)
 
 names(kids)
 

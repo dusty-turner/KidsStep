@@ -72,8 +72,10 @@ summary(descrCor[upper.tri(descrCor)])
 names(kidsnofac)
 # 
 highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
-filteredDescr <- kidsnofac[,-highlyCorDescr]
+# filteredDescr <- kidsnofac[,-highlyCorDescr]
 dim(filteredDescr)
+
+filteredDescr <- kidsnofac[,-c(4,5,8,10,14,15,20)]
 
 # [1]  4  2  8 10 14 15 20
 # waistavg, height, bmiperc, lastwalk, walk_mets_youth2, run_metsyouth2
@@ -108,14 +110,15 @@ kidsfinal = kidsbound[,-c(7,8,16,19:22)]
 
 names(kidsfinal)
 library(leaps)
-model = regsubsets(Run_Cadence~., data = kidsfinal)
+model = regsubsets(Run_Cadence~., data = kidsfinal, method = "exhaustive")
 summodel = summary(model)
 summodel$bic
 
 str(summodel)
 summodel$outmat
 
-bestmod = lm(Run_Cadence~Tanita.Avg+BMIz+Run_VO2mlkgmin+Run_METSYouth3,data = kidsfinal)
+# bestmod = lm(Run_Cadence~Tanita.Avg+BMIz+Run_VO2mlkgmin+Run_METSYouth3,data = kidsfinal)
+bestmod = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 summary(bestmod)
 
 library(caret)
