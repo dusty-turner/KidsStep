@@ -20,7 +20,7 @@ pymax=max(kids$Run_Cadence)+100
 ui <- dashboardPage(skin = "blue",
                     
                     # Application title
-                    dashboardHeader(title="Running Cadence and Speed",
+                    dashboardHeader(title="Walk to Run Cadence",
                                     titleWidth = 300),
                     
                     # Sidebar with a slider input for number of bins 
@@ -104,31 +104,31 @@ output$progressBoxBMI <- renderValueBox({
   )
 })
 
-output$progressBoxBMIz <- renderValueBox({
-  valueBox(
-    round(modresult()[6,2],3), "BMIz",icon = icon("thumbs-up", lib = "glyphicon"),
-    color = "blue"
-  )
-})
+# output$progressBoxBMIz <- renderValueBox({
+#   valueBox(
+#     round(modresult()[6,2],3), "BMIz",icon = icon("thumbs-up", lib = "glyphicon"),
+#     color = "blue"
+#   )
+# })
 
-output$progressBoxlb <- renderValueBox({
-  valueBox(
-    paste(round(modresult()[6,6]),"Steps"), "Lower Bound",icon = icon("thumbs-up", lib = "glyphicon"),
-    color = "orange"
-  )
-})
+# output$progressBoxlb <- renderValueBox({
+#   valueBox(
+#     paste(round(modresult()[6,6]),"Steps"), "Lower Bound",icon = icon("thumbs-up", lib = "glyphicon"),
+#     color = "orange"
+#   )
+# })
 output$progressBox <- renderValueBox({
   valueBox(
     paste(round(modresult()[6,5]),"Steps"), "Expected Run Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
     color = "orange"
   )
 })
-output$progressBoxub <- renderValueBox({
-  valueBox(
-    paste(round(modresult()[6,7]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
-    color = "orange"
-  )
-})
+# output$progressBoxub <- renderValueBox({
+#   valueBox(
+#     paste(round(modresult()[6,7]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
+#     color = "orange"
+#   )
+# })
 # output$progressBoxub1 <- renderTable({
 #     modresult4()
 #     # paste(round(modresult()[6,6]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
