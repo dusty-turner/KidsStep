@@ -134,12 +134,17 @@ residualPlots(bestmod)
 qqPlot(bestmod, distribution = "norm")
 
 
+kidsfinal$predictions = predict.lm(bestmod,data = kidsfinal)
+
 ####  Visualize Run Cadence based on Age Group and Height Tertile
 dodge=position_dodge(width=.5)
 kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-12","13-16","17-20"))) %>%
-  group_by(AgeGroup) %>% mutate(HeightTertile=cut(HeightCMAvg,breaks=3, labels = c("Short","Middle","Tallest"))) %>% select (AgeGroup, HeightTertile, Run_Cadence) %>%
+  group_by(AgeGroup) %>% mutate(HeightTertile=cut(HeightCMAvg,breaks=3, labels = c("Short","Middle","Tallest"))) %>% 
+  select (AgeGroup, HeightTertile, Run_Cadence, predictions) %>%
   group_by(AgeGroup, HeightTertile) %>%
-  summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
+  # summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
+  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
+  # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
+  ggplot(aes(x=AgeGroup,y=PredRunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge, size = 3) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 3) 
 
          
