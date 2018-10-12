@@ -133,3 +133,5 @@ library(car)
 residualPlots(bestmod)
 qqPlot(bestmod, distribution = "norm")
 
+
+####
