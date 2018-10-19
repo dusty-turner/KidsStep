@@ -143,14 +143,16 @@ kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-
   select (AgeGroup, HeightTertile, Run_Cadence, predictions) %>%
   group_by(AgeGroup, HeightTertile) %>%
   # summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
+  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(predictions)-sd(predictions)) %>%
   # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
+
   ggplot(aes(x=AgeGroup,y=PredRunCadence, color=HeightTertile),position = dodge) + 
   geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 3) +
-  # geom_point(position = dodge, size = 3, color = "green") + 
+  geom_point(position = dodge, size = 3) +
   ylab("Predicted Run Cadence") + xlab("Age") + 
   scale_color_discrete("Height Tertile") +
   ggtitle("Predicted Run Cadence by Age over Height")
+
 
 dodge=position_dodge(width=.5)
 kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-12","13-16","17-20"))) %>%
@@ -162,8 +164,8 @@ kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-
   # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
   ggplot(aes(x=AgeGroup,y=PredRunCadence, color=WeightTertile),position = dodge) + 
   geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 3) +
-  # geom_point(position = dodge, size = 3, color = "green") + 
+  geom_point(position = dodge, size = 3) +
   ylab("Predicted Run Cadence") + xlab("Age") + 
   scale_color_discrete("Weight Tertile") +
-  ggtitle("Predicted Run Cadence by Age over Height")
+  ggtitle("Predicted Run Cadence by Age over Weight")
 
