@@ -45,7 +45,7 @@ ui <- dashboardPage(skin = "yellow",
 
   # Sex+Age_years+WaistCMAvg+Racelimited+Tanita.Avg_percentbodyfat
       
-    dashboardBody(
+  dashboardBody(
       # tabItems(
       #   ),
         tabItem(tabName = "picks",
