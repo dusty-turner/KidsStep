@@ -347,8 +347,8 @@ output$ggplotout = renderPlot(
     geom_line(aes(y=predmax),data=modwalkresult()) +
     geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2,fill="blue",data=modwalkresult())+
     geom_errorbar(aes(x=input$age,ymin = predmin[which(Age==input$age)], ymax = predmax[which(Age==input$age)]),color="dark red",data=modwalkresult()) +
-    xlab("Age") + ylab("Jogging Transition Prediction") +
-    ggtitle("Jogging Transition as Age Changes")
+    xlab("Age") + ylab("Transition Prediction") +
+    ggtitle("Transition as Age Changes")
 )
 
 output$ggplotout2 = renderPlot(
@@ -366,8 +366,8 @@ output$ggplotout2 = renderPlot(
     geom_line(aes(y=predmax), data=modwalkresult2()) +
     geom_point(aes(x=input$weight,y=preds[which(Weight==input$weight)]), color="red", data=modwalkresult2())+
     geom_errorbar(aes(x=input$weight,ymin = predmin[which(Weight==input$weight)], ymax = predmax[which(Weight==input$weight)]),color="dark red", data=modwalkresult2()) +
-    xlab("Weight") + ylab("Jogging Transition Prediction") +
-    ggtitle("Jogging Transition as Weight Changes")
+    xlab("Weight") + ylab("Transition Prediction") +
+    ggtitle("Transition as Weight Changes")
 )
 
 
@@ -386,8 +386,8 @@ output$ggplotout3 = renderPlot(
     #geom_point(aes(x=input$gender,y=preds[which(BMIz==input$BMIz)]), color="red")+
     geom_errorbar(aes(x=c("Male","Female"),ymin = predmin[which(gender==c("M","F"))], ymax = predmax[which(gender==c("M","F"))]),color="dark red",data=modwalkresult5()) +
     ylim(pymin,pymax)  +
-    xlab("Gender") + ylab("Jogging Transition Prediction") +
-    ggtitle("Jogging Transition as Gender Changes")
+    xlab("Gender") + ylab("Transition Prediction") +
+    ggtitle("Transition as Gender Changes")
 )
 
 # output$table1 = renderTable(modrunresult5())
@@ -407,8 +407,8 @@ output$ggplotout4 = renderPlot(
     geom_point(aes(x=input$height,y=preds[which(Height==input$height)]), color="red", data=modwalkresult4())+
     geom_errorbar(aes(x=input$height,ymin = predmin[which(Height==input$height)], ymax = predmax[which(Height==input$height)]),color="dark red", data=modwalkresult4()) +
     ylim(pymin,pymax) + xlim((input$height-5),(input$height+5)) +
-    xlab("Height") + ylab("Jogging Transition Prediction") +
-    ggtitle("Jogging Transition as Height Changes")
+    xlab("Height") + ylab("Transition Prediction") +
+    ggtitle("Transition as Height Changes")
 )
 
 
