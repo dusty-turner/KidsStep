@@ -121,7 +121,7 @@ str(summodel)
 summodel$outmat
 
 # bestmod = lm(Run_Cadence~Tanita.Avg+BMIz+Run_VO2mlkgmin+Run_METSYouth3,data = kidsfinal)
-# bestmod = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
+bestmodrun = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 bestmodinterp = lm(Walk_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kidsfinal)
 bestmodnoninterp = lm(Walk_Cadence~Tanita.Avg+BMIz+Walk_VO2mlkgmin+Run_METSYouth3,data = kidsfinal)
 summary(bestmodinterp)
@@ -178,6 +178,23 @@ noninterpmodelsse = mean(SSEFold) ## average SSE on the data
 interpmodelsse
 noninterpmodelsse
 
+##################################################
+wt = 60.1
+ht = 160
+age = 10
+library(AGD)
+BMItemp=wt/(ht/100)^2
+BMIzcalc=y2z(BMItemp,age,sex="M",ref=cdc.bmi)
+
+newdata = data.frame(Age=age,HeightCMAvg=ht,WeightKGAvg=wt,BMIz=BMIzcalc)
+
+predict.lm(bestmodinterp, newdata = newdata, interval = "prediction")[2]
+predict.lm(bestmodrun, newdata = newdata, interval = "prediction")
+
+
+head(kidsfinal)
+
+bestmodrun
 
 ####################################################
 library(caret)
