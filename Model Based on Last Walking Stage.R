@@ -5,6 +5,11 @@ library(forcats)
 options(scipen=999)
 kidsraw = read_csv("Predict_Running_Transition_Final.csv")
 
+
+
+#### Linear discriminate analysis
+
+
 kids = kidsraw %>%
   filter(Transitioned_FullStage==1) %>%
   mutate_if(is.character,as.factor)
@@ -133,6 +138,14 @@ kidsfinal %>%
   ggplot(aes(x=Tanita.Avg,y=BMIz)) +
   geom_point()
 
+###Example Prediction of walk interp
+age=10
+height=161.4
+weight=40
+gender="M"
+BMI=weight/(height/100)^2
+predict.lm(bestmodinterp,data.frame(Age=age, HeightCMAvg=height, WeightKGAvg=weight,BMIz=y2z(BMI,age,gender,ref=cdc.bmi)),interval="prediction")
+
 ### walk cadence interpretable
 set.seed(2007) ## set seed to make this reproducible
 nfolds = 10 ## number of folds
@@ -175,8 +188,26 @@ for(i in 1:nfolds){
 }
 noninterpmodelsse = mean(SSEFold) ## average SSE on the data
 
+
+
 interpmodelsse
 noninterpmodelsse
+
+
+#### Logistic Regression Interpretable
+logdata= kidsbound[,c(1:3,6,8,11,15)]
+logdata=kidsbound %>%
+  select(Age,HeightCMAvg,WeightKGAvg,Walk_Cadence,Run_Cadence,Sex) %>%
+  gather(Walk_or_Run,Cadence,c(Walk_Cadence,Run_Cadence)) %>%
+  mutate(walk_or_run=case_when(
+    Walk_or_Run=="Run_Cadence" ~ "Run",
+    Walk_or_Run=="Walk_Cadence" ~ "Walk")
+  ) %>%
+  select(-Walk_or_Run)
+logdata$walk_or_run=as.factor(logdata$walk_or_run)
+logmodel=glm(walk_or_run~., data=logdata,family=binomial(link="logit"))
+summary(logmodel)
+
 
 
 ####################################################
