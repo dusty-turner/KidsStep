@@ -3,17 +3,20 @@ library(shinydashboard)
 library(tidyverse)
 library(AGD)
 
-# options(scipen=999)
-kidsraw = read_csv("Predict_Running_Transition_Final.csv")
+kids = read_csv("Predict_Running_Transition_Final.csv") 
 
-kids = kidsraw %>%
+logdata = kids %>%
   filter(Transitioned_FullStage==1) %>%
-  mutate_if(is.character,as.factor)
+  mutate_if(is.character,as.factor) %>%
+  select(Age,HeightCMAvg,WeightKGAvg,Walk_Cadence,Run_Cadence,Sex,BMIz) %>%
+  gather(WalkOrRun,Cadence,c(Walk_Cadence,Run_Cadence)) %>%
+  mutate(WalkOrRun=case_when(
+    WalkOrRun=="Run_Cadence" ~ 1,
+    WalkOrRun=="Walk_Cadence" ~ 0)
+  ) %>%
+  mutate(WalkOrRun=as.factor(WalkOrRun))
 
-
-
-modrun = lm(Run_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kids)
-modwalk= lm(Walk_Cadence~Age+HeightCMAvg+WeightKGAvg+BMIz,data = kids)
+logmodel=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
 
 pymin=min(kids$Run_Cadence)-100
 pymax=max(kids$Run_Cadence)+100
@@ -42,7 +45,7 @@ ui <- dashboardPage(skin = "blue",
                       valueBoxOutput("progressBoxBMI", width=12),       
                       valueBoxOutput("progressBoxBMIz", width=12),
                       valueBoxOutput("progressBoxlb", width=12),
-                      valueBoxOutput("progressBoxWalk", width=12),
+                      # valueBoxOutput("progressBoxWalk", width=12),
                       valueBoxOutput("progressBox", width=12),
                       valueBoxOutput("progressBoxub", width=12)
                       
@@ -52,53 +55,23 @@ ui <- dashboardPage(skin = "blue",
                     dashboardBody(
                       
                       headerPanel("Current Estimate in Red"),
-                      tags$h5("First Run Prediction in Orange"),
-                      tags$h5("Last Walk Prediction in Blue"),
+                      # tags$h5("First Run Prediction in Orange"),
+                      # tags$h5("Last Walk Prediction in Blue"),
                       
-                      fluidRow(
-                        box(
-                          title = "Age Changes",
+                      # fluidRow(
+                        box(width = 12,
+                          title = "Walking or Running",
                           status = "primary",
                           solidHeader = TRUE,
                           collapsible = TRUE,
                           # "Box content here", br(), "More box content",
                           plotOutput("ggplotout")
-                          
-                        ),
-                        
-                        box(
-                          title = "Weight Changes",
-                          status = "primary",
-                          solidHeader = TRUE,
-                          collapsible = TRUE,
-                          # "Box content here", br(), "More box content",
-                          plotOutput("ggplotout2")
-                        ),
-                        
-                        box(
-                          title = "Gender Changes",
-                          status = "primary",
-                          solidHeader = TRUE,
-                          collapsible = TRUE,
-                          # "Box content here", br(), "More box content",
-                          # tableOutput("table1"),
-                          plotOutput("ggplotout3")
-                        ),
-                        
-                        box(
-                          title = "Height Changes",
-                          status = "primary",
-                          solidHeader = TRUE,
-                          collapsible = TRUE,
-                          # "Box content here", br(), "More box content",
-                          # tableOutput("progressBoxub1"),
-                          plotOutput("ggplotout4")
-                        )
+                          # textOutput("modrunresultout")
                       )
                     )
 )
 
-# Define server logic required to draw a histogram 
+# Define server logic 
 server <- function(input, output) {
 
 output$progressBoxBMI <- renderValueBox({
@@ -108,19 +81,7 @@ output$progressBoxBMI <- renderValueBox({
   )
 })
 
-# output$progressBoxBMIz <- renderValueBox({
-#   valueBox(
-#     round(modrunresult()[6,2],3), "BMIz",icon = icon("thumbs-up", lib = "glyphicon"),
-#     color = "blue"
-#   )
-# })
 
-# output$progressBoxlb <- renderValueBox({
-#   valueBox(
-#     paste(round(modrunresult()[6,6]),"Steps"), "Lower Bound",icon = icon("thumbs-up", lib = "glyphicon"),
-#     color = "orange"
-#   )
-# })
 output$progressBox <- renderValueBox({
   valueBox(
     paste(round(modrunresult()[6,5]),"Steps"), "Expected First Run Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
@@ -128,292 +89,66 @@ output$progressBox <- renderValueBox({
   )
 })
 
-output$progressBoxWalk <- renderValueBox({
-  valueBox(
-    paste(round(modwalkresult()[6,5]),"Steps"), "Expected Last Walk Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
-    color = "blue"
-  )
-})
-# output$progressBoxub <- renderValueBox({
+# output$progressBoxWalk <- renderValueBox({
 #   valueBox(
-#     paste(round(modrunresult()[6,7]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
-#     color = "orange"
+#     paste(round(modwalkresult()[6,5]),"Steps"), "Expected Last Walk Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
+#     color = "blue"
 #   )
 # })
-# output$progressBoxub1 <- renderTable({
-#     modrunresult4()
-#     # paste(round(modrunresult()[6,6]),"Steps"), "Upper Bound",icon = icon("thumbs-up", lib = "glyphicon"),
-# })
+
 
 
 modrunresult <- reactive({
   BMItemp=input$weight/(input$height/100)^2
   BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modrun, newdata = data.frame(Age = c((input$age-5):(input$age+5)), WeightKGAvg = rep(input$weight,11), BMIz =rep(BMIzcalc,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = c((input$age-5):(input$age+5)),
-    BMIz = rep(BMIzcalc,11),
-    Weight = rep(input$weight,11),
-    Height = rep(input$height,11),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    BMI=BMItemp,
-    
-    stringsAsFactors = FALSE)
-  return(guesses)
+  nextdata =
+    expand.grid(Age = input$age,
+                HeightCMAvg = input$height,
+                WeightKGAvg = input$weight,
+                BMIz = BMIzcalc,
+                Cadence = seq(min(logdata$Cadence),max(logdata$Cadence),1)) %>%
+    as_tibble() 
+  nextdata = nextdata %>%
+    mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
+  # 
+  # cut =
+  #   nextdata %>%
+  #   mutate(close = abs(.5-predictions)) %>% 
+  #   arrange(close) %>%
+  #   filter(row_number()==1)
+  # cut = cut$Cadence
+
+  return(nextdata)
 })
 
-modrunresult2 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modrun, newdata = data.frame(Age = rep(input$age,11), WeightKGAvg =  c((input$weight-5):(input$weight+5)), BMIz = rep(BMIzcalc,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,11),
-    BMIz = rep(BMIzcalc,11),
-    Weight = c((input$weight-5):(input$weight+5)),
-    Height = rep(input$height,11),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],      
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modrunresult3 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modrun, newdata = data.frame(Age = rep(input$age,11), WeightKGAvg = rep(input$weight,11) , BMIz = c((BMIzcalc-5):(BMIzcalc+5)), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,11),
-    BMIz = c((BMIzcalc-5):(BMIzcalc+5)),
-    Weight = rep(input$weight,11),
-    Height = rep(input$height,11),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modrunresult4 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modrun, newdata = data.frame(Age = rep(input$age,11), WeightKGAvg = rep(input$weight,11) , BMIz = rep(BMIzcalc,11), HeightCMAvg = c((input$height-5):(input$height+5))), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,11),
-    BMIz = rep(BMIzcalc,11),
-    Weight = rep(input$weight,11),
-    Height = c((input$height-5):(input$height+5)),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modrunresult5 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalcM=y2z(BMItemp,input$age,sex="M",ref=cdc.bmi)
-  BMIzcalcF=y2z(BMItemp,input$age,sex="F",ref=cdc.bmi)
-  pred = predict.lm(modrun, newdata = data.frame(Age = rep(input$age,2), WeightKGAvg = rep(input$weight,2) , BMIz = c(BMIzcalcM,BMIzcalcF), HeightCMAvg = rep(input$height,2)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,2),
-    BMIz = c(BMIzcalcM,BMIzcalcF),
-    Weight = rep(input$weight,2),
-    Height = rep(input$height,2),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    gender = c("M","F"),
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-###############################
-
-#Mod Walk results
-
-modwalkresult <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modwalk, newdata = data.frame(Age = c((input$age-5):(input$age+5)), WeightKGAvg = rep(input$weight,11), BMIz =rep(BMIzcalc,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = c((input$age-5):(input$age+5)),
-    BMIz = rep(BMIzcalc,11),
-    Weight = rep(input$weight,11),
-    Height = rep(input$height,11),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    BMI=BMItemp,
-    
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modwalkresult2 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modwalk, newdata = data.frame(Age = rep(input$age,11), WeightKGAvg =  c((input$weight-5):(input$weight+5)), BMIz = rep(BMIzcalc,11), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,11),
-    BMIz = rep(BMIzcalc,11),
-    Weight = c((input$weight-5):(input$weight+5)),
-    Height = rep(input$height,11),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],      
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modwalkresult3 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modwalk, newdata = data.frame(Age = rep(input$age,11), WeightKGAvg = rep(input$weight,11) , BMIz = c((BMIzcalc-5):(BMIzcalc+5)), HeightCMAvg = rep(input$height,11)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,11),
-    BMIz = c((BMIzcalc-5):(BMIzcalc+5)),
-    Weight = rep(input$weight,11),
-    Height = rep(input$height,11),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modwalkresult4 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
-  pred = predict.lm(modwalk, newdata = data.frame(Age = rep(input$age,11), WeightKGAvg = rep(input$weight,11) , BMIz = rep(BMIzcalc,11), HeightCMAvg = c((input$height-5):(input$height+5))), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,11),
-    BMIz = rep(BMIzcalc,11),
-    Weight = rep(input$weight,11),
-    Height = c((input$height-5):(input$height+5)),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-modwalkresult5 <- reactive({
-  BMItemp=input$weight/(input$height/100)^2
-  BMIzcalcM=y2z(BMItemp,input$age,sex="M",ref=cdc.bmi)
-  BMIzcalcF=y2z(BMItemp,input$age,sex="F",ref=cdc.bmi)
-  pred = predict.lm(modwalk, newdata = data.frame(Age = rep(input$age,2), WeightKGAvg = rep(input$weight,2) , BMIz = c(BMIzcalcM,BMIzcalcF), HeightCMAvg = rep(input$height,2)), interval = "prediction", level=.95)
-  guesses = data.frame(
-    Age = rep(input$age,2),
-    BMIz = c(BMIzcalcM,BMIzcalcF),
-    Weight = rep(input$weight,2),
-    Height = rep(input$height,2),
-    preds = pred[,1],
-    predmin = pred[,2],
-    predmax = pred[,3],
-    gender = c("M","F"),
-    BMI=BMItemp,
-    stringsAsFactors = FALSE)
-  return(guesses)
-})
-
-
+# output$modrunresultout = renderText(unlist(cutresult()))
 # output$modrunresultout = renderText(unlist(modrunresult()))
-# output$modrunresultout2 = renderTable(unlist(modrunresult2()))
-#
-# data = data.frame(x=c(1:10),y=(2:11))
 
+
+cutresult <- reactive({
+  cut =
+    modrunresult() %>%
+    mutate(close = abs(.5-predictions)) %>%
+    arrange(close) %>%
+    filter(row_number()==1)
+  cut = cut$Cadence
+  return(cut)
+})
 
 output$ggplotout = renderPlot(
-  ggplot(aes(x=Age,y=preds), data = modrunresult()) +
-    geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2,fill="orange")+
-    geom_point() +
-    geom_line(aes(y=predmin)) +
-    geom_line(aes(y=predmax)) +
-    geom_point(aes(x=input$age,y=preds[which(Age==input$age)]), color="red")+
-    geom_errorbar(aes(x=input$age,ymin = predmin[which(Age==input$age)], ymax = predmax[which(Age==input$age)]),color="red") +
-    ylim(pymin,pymax) + xlim((input$age-5),(input$age+5)) +
-    geom_point(data=modwalkresult())+
-    geom_line(aes(y=predmin),data=modwalkresult()) +
-    geom_line(aes(y=predmax),data=modwalkresult()) +
-    geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2,fill="blue",data=modwalkresult())+
-    geom_errorbar(aes(x=input$age,ymin = predmin[which(Age==input$age)], ymax = predmax[which(Age==input$age)]),color="dark red",data=modwalkresult()) +
-    xlab("Age") + ylab("Transition Prediction") +
-    ggtitle("Transition as Age Changes")
-)
-
-output$ggplotout2 = renderPlot(
-  ggplot(aes(x=Weight,y=preds), data = modrunresult2()) +
-    geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2, fill="orange")+
-    geom_point() +
-    geom_line(aes(y=predmin)) +
-    geom_line(aes(y=predmax)) +
-    geom_point(aes(x=input$weight,y=preds[which(Weight==input$weight)]), color="red")+
-    geom_errorbar(aes(x=input$weight,ymin = predmin[which(Weight==input$weight)], ymax = predmax[which(Weight==input$weight)]),color="red") +
-    ylim(pymin,pymax) + xlim((input$weight-5),(input$weight+5)) +
-    geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2,fill="blue", data=modwalkresult2())+
-    geom_point(data=modwalkresult2()) +
-    geom_line(aes(y=predmin), data=modwalkresult2()) +
-    geom_line(aes(y=predmax), data=modwalkresult2()) +
-    geom_point(aes(x=input$weight,y=preds[which(Weight==input$weight)]), color="red", data=modwalkresult2())+
-    geom_errorbar(aes(x=input$weight,ymin = predmin[which(Weight==input$weight)], ymax = predmax[which(Weight==input$weight)]),color="dark red", data=modwalkresult2()) +
-    xlab("Weight") + ylab("Transition Prediction") +
-    ggtitle("Transition as Weight Changes")
-)
-
-
-output$ggplotout3 = renderPlot(
-  ggplot(aes(x=c("Male","Female"),y=preds), data = modrunresult5()) +
-    # geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2)+
-    geom_point() +
-    # geom_line(aes(y=predmin)) +
-    # geom_line(aes(y=predmax)) +
-    #geom_point(aes(x=input$gender,y=preds[which(BMIz==input$BMIz)]), color="red")+
-    geom_errorbar(aes(x=c("Male","Female"),ymin = predmin[which(gender==c("M","F"))], ymax = predmax[which(gender==c("M","F"))]),color="red") +
-    # geom_errorbar(aes(x=input$gender,ymin = predmin[which(gender=="M")], ymax = predmax[which(gender=="M")]),color="dark red") +
-    geom_point(data=modwalkresult5()) +
-    # geom_line(aes(y=predmin)) +
-    # geom_line(aes(y=predmax)) +
-    #geom_point(aes(x=input$gender,y=preds[which(BMIz==input$BMIz)]), color="red")+
-    geom_errorbar(aes(x=c("Male","Female"),ymin = predmin[which(gender==c("M","F"))], ymax = predmax[which(gender==c("M","F"))]),color="dark red",data=modwalkresult5()) +
-    ylim(pymin,pymax)  +
-    xlab("Gender") + ylab("Transition Prediction") +
-    ggtitle("Transition as Gender Changes")
-)
-
-# output$table1 = renderTable(modrunresult5())
-
-output$ggplotout4 = renderPlot(
-  ggplot(aes(x=Height,y=preds), data = modrunresult4()) +
-    geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2, fill="orange")+
-    geom_point() +
-    geom_line(aes(y=predmin)) +
-    geom_line(aes(y=predmax)) +
-    geom_point(aes(x=input$height,y=preds[which(Height==input$height)]), color="red")+
-    geom_errorbar(aes(x=input$height,ymin = predmin[which(Height==input$height)], ymax = predmax[which(Height==input$height)]),color="red") +
-    geom_ribbon(aes(ymin=predmin,ymax=predmax),alpha=.2, fill="blue", data=modwalkresult4())+
-    geom_point(data=modwalkresult4()) +
-    geom_line(aes(y=predmin), data=modwalkresult4()) +
-    geom_line(aes(y=predmax), data=modwalkresult4()) +
-    geom_point(aes(x=input$height,y=preds[which(Height==input$height)]), color="red", data=modwalkresult4())+
-    geom_errorbar(aes(x=input$height,ymin = predmin[which(Height==input$height)], ymax = predmax[which(Height==input$height)]),color="dark red", data=modwalkresult4()) +
-    ylim(pymin,pymax) + xlim((input$height-5),(input$height+5)) +
-    xlab("Height") + ylab("Transition Prediction") +
-    ggtitle("Transition as Height Changes")
-)
-
-
-
-
+  
+  modrunresult() %>%
+    ggplot(aes(x=Cadence,y=predictions)) +
+    geom_line() +
+    geom_ribbon(aes(ymin = 0, ymax = predictions), fill = "orange", alpha = .5) +
+    geom_ribbon(aes(ymin = predictions, ymax = 1), fill = "blue", alpha = .5) +
+    geom_segment(aes(x= cutresult(), y = 0, xend = cutresult(), yend = .5), color = "red", size = 2) +
+    geom_segment(aes(x= cutresult(), y = .5, xend = min(modrunresult()$Cadence ), yend = .5), color = "red", size = 1) +
+    geom_label(aes(x=min(modrunresult()$Cadence+10),y=.9, label = "Walking")) +
+    geom_label(aes(x=max(modrunresult()$Cadence-10),y=.9, label = "Running")) + 
+    geom_label(aes(x=cutresult(),y=0, label = cutresult())) +
+    labs(x = "Cadence", y = "Probability", title = "Transition Probability as Cadence Increases")
+  )
 
 }
 
