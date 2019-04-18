@@ -106,7 +106,7 @@ modrunresult <- reactive({
                 HeightCMAvg = input$height,
                 WeightKGAvg = input$weight,
                 BMIz = BMIzcalc,
-                Cadence = seq(min(logdata$Cadence),max(logdata$Cadence),1)) %>%
+                Cadence = seq(min(logdata$Cadence),max(logdata$Cadence),.1)) %>%
     as_tibble() 
   nextdata = nextdata %>%
     mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
