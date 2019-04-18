@@ -122,6 +122,8 @@ logdata= kidsbound %>%
   mutate(WalkOrRun=as.factor(WalkOrRun)) %>%
   select(-c(FirstRun,Agecat,Walk_Stage,Run_Stage,Transitioned,Transitioned_FullStage))
 
+names(logdatasub)
+
 summary(logdata)
 
 ## Full Model - doesn't work
@@ -239,109 +241,21 @@ nextdata %>%
   filter(predictions>.2&predictions<.8)
 
 ####################################################
-library(caret)
-preds = predict.lm(bestmod,newdata = kidsfinal)
-postResample(preds, kidsfinal$Run_Cadence)
+
+nextdata %>% 
+  as_tibble() %>%
+  mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
 
 
-kidsfinal$Run_METSYouth1
-cor(kidsfinal$Tanita.Avg,kidsfinal$BMIz)
+kidsbound %>%
+  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
+  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+  group_by(Agecat,Sex) %>%
+  summarise_all(funs(mean(.)))
 
-library(car)
-residualPlots(bestmod)
-qqPlot(bestmod, distribution = "norm")
-
-
-kidsfinal$predictions = predict.lm(bestmod,data = kidsfinal)
-
-####  Visualize Run Cadence based on Age Group and Height Tertile
-dodge=position_dodge(width=.5)
-kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-12","13-16","17-20"))) %>%
-  group_by(AgeGroup) %>%  mutate(HeightTertile=ntile(HeightCMAvg,3) )  %>% 
-  mutate(HeightTertile=case_when(HeightTertile==1 ~ "Low",HeightTertile==2 ~ "Medium",HeightTertile==3 ~ "High")) %>% 
-  mutate(HeightTertile=fct_relevel(HeightTertile,"Low","Medium","High")) %>%
-  select (AgeGroup, HeightTertile, Run_Cadence, predictions) %>%
-  group_by(AgeGroup, HeightTertile) %>%
-  # summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(predictions)-sd(predictions)) %>%
-  # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
+kidsbound %>%
+  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
+  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+  group_by(Agecat,Sex) %>%
+  summarise_all(funs(sd(.)))
   
-  ggplot(aes(x=AgeGroup,y=PredRunCadence, color=HeightTertile),position = dodge) + 
-  geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 2.5) +
-  geom_point(position = dodge, size =4) +
-  ylab("Predicted Transition Cadence") + xlab("Age") + 
-  scale_color_discrete("Height Tertile") +
-  ggtitle("Predicted Transition Cadence by Age over Height")
-
-
-dodge=position_dodge(width=.5)
-kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-12","13-16","17-20"))) %>%
-  group_by(AgeGroup) %>% mutate(WeightTertile=ntile(WeightKGAvg,3) )  %>% 
-  mutate(WeightTertile=case_when(WeightTertile==1 ~ "Low",WeightTertile==2 ~ "Medium",WeightTertile==3 ~ "High")) %>%
-  mutate(WeightTertile=fct_relevel(WeightTertile,"Low","Medium","High")) %>%
-  select (AgeGroup, WeightTertile, Run_Cadence, predictions) %>%
-  group_by(AgeGroup, WeightTertile) %>% 
-  # summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(predictions)-sd(predictions)) %>%
-  # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
-  ggplot(aes(x=AgeGroup,y=PredRunCadence, color=WeightTertile),position = dodge) + 
-  geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 2.5) +
-  geom_point(position = dodge, size = 4) +
-  ylab("Predicted Transition Cadence") + xlab("Age") + 
-  scale_color_discrete("Weight Tertile") +
-  ggtitle("Predicted Transition Cadence by Age over Weight")
-
-dodge=position_dodge(width=.5)
-kidsfinal %>% mutate(AgeGroup=cut(Age,breaks=c(5,9,12,16,21),labels=c("6-9","10-12","13-16","17-20"))) %>%
-  group_by(AgeGroup) %>% mutate(BMITertile=ntile(BMIz,3) )  %>% 
-  mutate(BMITertile=case_when(BMITertile==1 ~ "Low",BMITertile==2 ~ "Medium",BMITertile==3 ~ "High")) %>%
-  mutate(BMITertile=fct_relevel(BMITertile,"Low","Medium","High")) %>%
-  select (AgeGroup, BMITertile, Run_Cadence, predictions) %>%
-  group_by(AgeGroup, BMITertile) %>% 
-  # summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(predictions)-sd(predictions)) %>%
-  # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
-  ggplot(aes(x=AgeGroup,y=PredRunCadence, color=BMITertile),position = dodge) + 
-  geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 2.5) +
-  geom_point(position = dodge, size = 4) +
-  ylab("Predicted Transition Cadence") + xlab("Age") + 
-  scale_color_discrete("BMIz Tertile") +
-  ggtitle("Predicted Transition Cadence by Age over BMIz")
-
-dodge=position_dodge(width=.5)
-kidsfinal %>% mutate(HeightTertile=ntile(HeightCMAvg,3) )  %>% 
-  mutate(HeightTertile=case_when(HeightTertile==1 ~ "Low",HeightTertile==2 ~ "Medium",HeightTertile==3 ~ "High")) %>% 
-  mutate(HeightTertile=fct_relevel(HeightTertile,"Low","Medium","High")) %>%
-  group_by(HeightTertile) %>% mutate(BMITertile=ntile(BMIz,3) )  %>% 
-  mutate(BMITertile=case_when(BMITertile==1 ~ "Low",BMITertile==2 ~ "Medium",BMITertile==3 ~ "High")) %>%
-  mutate(BMITertile=fct_relevel(BMITertile,"Low","Medium","High")) %>%
-  select (HeightTertile, BMITertile, Run_Cadence, predictions) %>%
-  group_by(HeightTertile, BMITertile) %>% 
-  # summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(predictions)-sd(predictions)) %>%
-  # ggplot(aes(x=AgeGroup,y=RunCadence, color=HeightTertile),position = dodge) + geom_point(position = dodge) + geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge) 
-  ggplot(aes(x=HeightTertile,y=PredRunCadence, color=BMITertile),position = dodge) + 
-  geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 2.5) +
-  geom_point(position = dodge, size = 4) +
-  ylab("Predicted Transition Cadence") + xlab("Height Tertile") + 
-  scale_color_discrete("BMIz Tertile") +
-  ggtitle("Predicted Transition Cadence by Height over BMIz")
-
-dodge=position_dodge(width=.5)
-kidsfinal %>% mutate(WeightTertile=ntile(WeightKGAvg,3) )  %>% 
-  mutate(WeightTertile=case_when(WeightTertile==1 ~ "Low",WeightTertile==2 ~ "Medium",WeightTertile==3 ~ "High")) %>% 
-  mutate(WeightTertile=fct_relevel(WeightTertile,"Low","Medium","High")) %>%
-  group_by(WeightTertile) %>% mutate(BMITertile=ntile(BMIz,3) )  %>% 
-  mutate(BMITertile=case_when(BMITertile==1 ~ "Low",BMITertile==2 ~ "Medium",BMITertile==3 ~ "High")) %>%
-  mutate(BMITertile=fct_relevel(BMITertile,"Low","Medium","High")) %>%
-  select (WeightTertile, BMITertile, Run_Cadence, predictions) %>%
-  group_by(WeightTertile, BMITertile) %>% 
-  summarise(RunCadence=mean(Run_Cadence), upperbound=mean(Run_Cadence)+sd(Run_Cadence),lowerbound=mean(Run_Cadence)-sd(Run_Cadence)) %>%
-  #summarise(PredRunCadence=mean(predictions), upperbound=mean(predictions)+sd(predictions),lowerbound=mean(predictions)-sd(predictions)) %>%
-  ggplot(aes(x=WeightTertile,y=RunCadence, color=BMITertile),position = dodge) + 
-  #ggplot(aes(x=WeightTertile,y=PredRunCadence, color=BMITertile),position = dodge) + 
-  geom_errorbar(aes(ymin=lowerbound,ymax=upperbound),position = dodge, size = 2.5) +
-  geom_point(position = dodge, size = 4) +
-  ylab("Predicted Transition Cadence") + xlab("Weight Tertile") + 
-  scale_color_discrete("BMIz Tertile") +
-  ggtitle("Predicted Transition Cadence by Weight over BMIz")

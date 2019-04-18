@@ -5,9 +5,9 @@ account: dustyturner
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 297939
-bundleId: 1807292
+bundleId: 2022065
 url: https://dustyturner.shinyapps.io/KidsStep/
-when: 1547141906.29328
+when: 1555617329.46358
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: CADENCE-Kids data.csv|Cluster Variable Selection.pdf|KCApp.R|KCApp1.R|KCApp2.R|KidCadenceJim.R|Kids Cadence Modeling Techniques.docx|KidsCadence.R|KidsRunAllPredictors.csv|KidsRunStatic.csv|KidsStep/CADENCE-Kids data.csv|KidsStep/rsconnect/shinyapps.io/dustyturner/bowlseason.dcf
