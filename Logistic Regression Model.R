@@ -201,6 +201,20 @@ nextdata %>%
   filter(row_number()==1)
 cut = cut$Cadence
 
+cuthigh=
+  nextdata %>%
+  mutate(close = abs(.9-predictions)) %>% 
+  arrange(close) %>%
+  filter(row_number()==1)
+cuthigh = cuthigh$Cadence
+
+cutlow=
+  nextdata %>%
+  mutate(close = abs(.1-predictions)) %>% 
+  arrange(close) %>%
+  filter(row_number()==1)
+cutlow = cutlow$Cadence
+
 
 nextdata %>%
   ggplot(aes(x=Cadence,y=predictions)) +
@@ -210,10 +224,12 @@ nextdata %>%
   geom_ribbon(aes(ymin = predictions, ymax = 1), fill = "blue", alpha = .5) +
   geom_segment(aes(x= cut, y = 0, xend = cut, yend = .5), color = "red", size = 2) +
   geom_segment(aes(x= cut, y = .5, xend = min(nextdata$Cadence ), yend = .5), color = "red", size = 1) +
+  geom_rect(aes(xmin=cutlow, xmax=cuthigh, ymin=0, ymax=1),alpha=.01,fill="red") +
   geom_label(aes(x=min(nextdata$Cadence+10),y=.9, label = "Walking")) +
   geom_label(aes(x=max(nextdata$Cadence-10),y=.9, label = "Running")) +
   geom_label(aes(x=cut,y=0, label = cut)) +
-  labs(x = "Cadence", y = "Probability", title = "Transition Probability as Cadence Increases")
+  geom_label(aes(x=cut,y=.9, label = "Transition Band")) +
+  labs(x = "Cadence", y = "Probability", title = "Transition Probability as Cadence Increases") 
 
 
 
