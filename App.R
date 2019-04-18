@@ -65,6 +65,7 @@ ui <- dashboardPage(skin = "blue",
                           solidHeader = TRUE,
                           collapsible = TRUE,
                           # "Box content here", br(), "More box content",
+                          # tableOutput("table")
                           plotOutput("ggplotout")
                           # textOutput("modrunresultout")
                       )
@@ -76,17 +77,22 @@ server <- function(input, output) {
 
 output$progressBoxBMI <- renderValueBox({
   valueBox(
-    round(modrunresult()[6,8],3), "BMI",icon = icon("thumbs-up", lib = "glyphicon"),
-    color = ifelse(pnorm(modrunresult()[6,2])>.95,"red",ifelse(pnorm(modrunresult()[6,2])>.85,"yellow","green"))
+    round(bmiresult(),3), "BMI",icon = icon("thumbs-up", lib = "glyphicon"),
+    color = ifelse(pnorm(modrunresult()$BMIz[1])>.95,"red",ifelse(pnorm(modrunresult()$BMIz[1])>.85,"yellow","green"))
   )
 })
 
 
 output$progressBox <- renderValueBox({
   valueBox(
-    paste(round(modrunresult()[6,5]),"Steps"), "Expected First Run Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
+    paste(round(cutresult()),"Steps"), "Expected Transition to Run Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
     color = "orange"
   )
+})
+
+output$table = renderTable({
+  modrunresult() %>%
+    mutate(helper = abs(.5-predictions))
 })
 
 # output$progressBoxWalk <- renderValueBox({
@@ -96,7 +102,10 @@ output$progressBox <- renderValueBox({
 #   )
 # })
 
-
+bmiresult = reactive({
+  BMItemp=input$weight/(input$height/100)^2
+  return(BMItemp)
+})
 
 modrunresult <- reactive({
   BMItemp=input$weight/(input$height/100)^2
