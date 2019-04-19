@@ -275,3 +275,52 @@ kidsbound %>%
   group_by(Agecat,Sex) %>%
   summarise_all(funs(sd(.)))
   
+
+########### 
+# Cross Validating
+###########
+rocdata = 
+logdata %>%
+  select(Age,HeightCMAvg,WeightKGAvg,BMIz,Cadence,WalkOrRun) %>%
+  mutate(probability = predict.glm(logmodel, newdata = logdata, type = "response")) %>%
+  mutate(predict = ifelse(probability<.5,0,1))
+
+library(caret)
+library(ROCR)
+pred = prediction(predictions = rocdata$probability, labels = rocdata$WalkOrRun)
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")         
+plot(roc.perf)
+abline(a=0,b=1)
+auc.perf = performance(pred, measure = "auc")
+auc.perf@y.values
+
+set.seed(42)
+nfolds = 10
+# nfolds = nrow(logdata)-1
+
+TrackingDF = NULL
+helper = NULL
+
+fold.assignment =
+  rep(1:nfolds, length.out = nrow(rocdata)) %>%
+  sample(nrow(rocdata))
+
+model.data = rocdata %>%
+  mutate(fold.assignment = fold.assignment)
+
+foldaccuracy = NULL
+# i = 3
+for(i in 1:nfolds){
+  train.data = model.data %>% filter(fold.assignment!=i)
+  test.data = model.data %>% filter(fold.assignment==i)
+  logmod=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
+  test.data = test.data %>%
+    mutate(predictions = predict.glm(logmod, test.data, type = "response")) %>%
+    mutate(declare = as.factor(as.character(ifelse(predictions<.5,0,1))))
+
+  cm = confusionMatrix(test.data$declare,test.data$WalkOrRun)
+  
+  foldaccuracy[i] = cm$overall[1]
+  
+}
+cv.accuracy = mean(foldaccuracy)
