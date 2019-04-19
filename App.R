@@ -24,12 +24,12 @@ pymax=max(kids$Run_Cadence)+100
 ui <- dashboardPage(skin = "blue",
                     
                     # Application title
-                    dashboardHeader(title="Walk to Run Cadence",
+                    dashboardHeader(title="Walk to Run Transition Cadence",
                                     titleWidth = 300),
                     
                     # Sidebar with a slider input for number of bins 
                     dashboardSidebar(
-                      width=300,
+                      width=300, 
                       
                       sidebarMenu(
                         
@@ -54,13 +54,13 @@ ui <- dashboardPage(skin = "blue",
                     # Show a plot of the generated distribution
                     dashboardBody(
                       
-                      headerPanel("Current Estimate in Red"),
+                      #headerPanel("Current Estimate in Red"),
                       # tags$h5("First Run Prediction in Orange"),
                       # tags$h5("Last Walk Prediction in Blue"),
                       
                       # fluidRow(
                         box(width = 12,
-                          title = "Walking or Running",
+                          title = "Walking or Running?",
                           status = "primary",
                           solidHeader = TRUE,
                           collapsible = TRUE,
@@ -110,12 +110,13 @@ bmiresult = reactive({
 modrunresult <- reactive({
   BMItemp=input$weight/(input$height/100)^2
   BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
+  predcad = -1.52091 * (-140.562 + 0.9804*input$age + 4.4953*BMIzcalc + 0.317*input$height - 0.362*input$weight)
   nextdata =
     expand.grid(Age = input$age,
                 HeightCMAvg = input$height,
                 WeightKGAvg = input$weight,
                 BMIz = BMIzcalc,
-                Cadence = seq(min(logdata$Cadence),max(logdata$Cadence),.1)) %>%
+                Cadence = c(seq(min(logdata$Cadence),(predcad-5),1),seq(predcad-5,predcad+5,.1),seq(predcad+5,max(logdata$Cadence),1))) %>%
     as_tibble() 
   nextdata = nextdata %>%
     mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
@@ -156,7 +157,7 @@ output$ggplotout = renderPlot(
     geom_label(aes(x=min(modrunresult()$Cadence+10),y=.9, label = "Walking")) +
     geom_label(aes(x=max(modrunresult()$Cadence-10),y=.9, label = "Running")) + 
     geom_label(aes(x=cutresult(),y=0, label = cutresult())) +
-    labs(x = "Cadence", y = "Probability", title = "Transition Probability as Cadence Increases")
+    labs(x = "Cadence", y = "Probability", title = "Gait Classification Probability as Cadence Changes")
   )
 
 }
