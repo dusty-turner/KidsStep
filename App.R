@@ -156,7 +156,7 @@ output$ggplotout = renderPlot(
     geom_segment(aes(x= cutresult(), y = .5, xend = min(modrunresult()$Cadence ), yend = .5), color = "red", size = 1) +
     geom_label(aes(x=min(modrunresult()$Cadence+10),y=.9, label = "Walking")) +
     geom_label(aes(x=max(modrunresult()$Cadence-10),y=.9, label = "Running")) + 
-    geom_label(aes(x=cutresult(),y=0, label = cutresult())) +
+    geom_label(aes(x=cutresult(),y=0, label = round(cutresult(),2))) +
     labs(x = "Cadence", y = "Probability", title = "Gait Classification Probability as Cadence Changes")
   )
 
