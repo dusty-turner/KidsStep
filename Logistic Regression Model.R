@@ -264,7 +264,7 @@ nextdata %>%
 
 
 kidsbound %>%
-  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
+  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat, WalkorRun) %>%
   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
   group_by(Agecat,Sex) %>%
   summarise_all(funs(mean(.)))
@@ -274,4 +274,13 @@ kidsbound %>%
   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
   group_by(Agecat,Sex) %>%
   summarise_all(funs(sd(.)))
-  
+
+kidsbound %>%
+  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
+  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+  group_by(Agecat,Sex) %>%
+  tally_all(.)
+
+kidsbound %>%
+  mutate(jump=Run_Cadence-Walk_Cadence) %>%
+  summarise(mean(jump))
