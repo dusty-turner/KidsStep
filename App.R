@@ -35,10 +35,10 @@ ui <- dashboardPage(skin = "blue",
                         
                         menuItem("Information",tabName="information",icon= icon("dashboard"), startExpanded=TRUE,
                                  sliderInput("age", label = "Age (years)", min=min(kids$Age), max=max(kids$Age), value=10, step=.5),
-                                 sliderInput("weight", label = "Weight (kgs)", min(kids$WeightKGAvg), max=max(kids$WeightKGAvg), value=40),
+                                 sliderInput("weight", label = "Weight (kg)", min(kids$WeightKGAvg), max=max(kids$WeightKGAvg), value=40),
                                  radioButtons("gender", label = "Gender", choiceNames = list("Male","Female"), choiceValues = list("M","F"), inline = TRUE),
                                  #sliderInput("BMIz", label = "BMIz", min=min(kids$BMIz), max=max(kids$BMIz), value=0),
-                                 sliderInput("height", label = "Height (cms)", min=min(kids$HeightCMAvg), max=max(kids$HeightCMAvg), value=mean(kids$HeightCMAvg)))
+                                 sliderInput("height", label = "Height (cm)", min=min(kids$HeightCMAvg), max=max(kids$HeightCMAvg), value=mean(kids$HeightCMAvg)))
                         #valueBoxOutput("progressBox")
                         
                       ),
@@ -68,16 +68,25 @@ ui <- dashboardPage(skin = "blue",
                           # tableOutput("table")
                           plotOutput("ggplotout")
                           # textOutput("modrunresultout")
-                      )
+                      ),
+                      tags$h6("This application is open access and free for public use, but please refrence this paper in any future research or analysis."),
+                      tags$a(href="https://www.google.com", "Link to Paper")
                     )
 )
 
 # Define server logic 
 server <- function(input, output) {
 
-output$progressBoxBMI <- renderValueBox({
+# output$progressBoxBMI <- renderValueBox({
+#   valueBox(
+#     round(bmiresult(),3), "BMI",icon = icon("thumbs-up", lib = "glyphicon"),
+#     color = ifelse(pnorm(modrunresult()$BMIz[1])>.95,"red",ifelse(pnorm(modrunresult()$BMIz[1])>.85,"yellow","green"))
+#   )
+# })
+
+output$progressBoxBMIz <- renderValueBox({
   valueBox(
-    round(bmiresult(),3), "BMI",icon = icon("thumbs-up", lib = "glyphicon"),
+    round(bmiresult(),3), "BMIz",icon = icon("thumbs-up", lib = "glyphicon"),
     color = ifelse(pnorm(modrunresult()$BMIz[1])>.95,"red",ifelse(pnorm(modrunresult()$BMIz[1])>.85,"yellow","green"))
   )
 })
@@ -104,7 +113,8 @@ output$table = renderTable({
 
 bmiresult = reactive({
   BMItemp=input$weight/(input$height/100)^2
-  return(BMItemp)
+  BMIzcalc=y2z(BMItemp,input$age,sex=input$gender,ref=cdc.bmi)
+  return(BMIzcalc)
 })
 
 modrunresult <- reactive({
@@ -157,7 +167,7 @@ output$ggplotout = renderPlot(
     geom_label(aes(x=min(modrunresult()$Cadence+10),y=.9, label = "Walking")) +
     geom_label(aes(x=max(modrunresult()$Cadence-10),y=.9, label = "Running")) + 
     geom_label(aes(x=cutresult(),y=0, label = round(cutresult(),2))) +
-    labs(x = "Cadence", y = "Probability", title = "Gait Classification Probability as Cadence Changes")
+    labs(x = "Cadence (steps/minute)", y = "Probability", title = "Gait Classification Probability as Cadence Changes")
   )
 
 }
