@@ -5,7 +5,7 @@ library(forcats)
 options(scipen=999)
 kidsraw = read_csv("Predict_Running_Transition_Final.csv")
 
-
+kidsraw %>% select(Run_Cadence,Walk_Cadence)
 
 #### Logistic Regression
 
@@ -44,6 +44,9 @@ dim(kids)
 names(kidsnofac)
 comboInfo = findLinearCombos(kidsnofac)
 
+# names(kidsnofac)
+# names(kidsnofac1)
+# kidsnofac1 = kidsnofac[, comboInfo$remove]
 kidsnofac = kidsnofac[, -comboInfo$remove]
 dim(kidsnofac)
 
@@ -263,24 +266,100 @@ nextdata %>%
   mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
 
 
-kidsbound %>%
-  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat, WalkorRun) %>%
-  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
-  group_by(Agecat,Sex) %>%
-  summarise_all(funs(mean(.)))
+# kidsbound %>%
+#   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat, WalkorRun) %>%
+#   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+#   group_by(Agecat,Sex) %>%
+#   summarise_all(funs(mean(.)))
+# 
+# kidsbound %>%
+#   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
+#   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+#   group_by(Agecat,Sex) %>%
+#   summarise_all(funs(sd(.)))
+
+
+########### 
+# Cross Validating
+###########
+rocdata = 
+logdata %>%
+  select(Age,HeightCMAvg,WeightKGAvg,BMIz,Cadence,WalkOrRun) %>%
+  mutate(probability = predict.glm(logmodel, newdata = logdata, type = "response")) %>%
+  mutate(predict = ifelse(probability<.5,0,1))
+
+library(caret)
+library(ROCR)
+pred = prediction(predictions = rocdata$probability, labels = rocdata$WalkOrRun)
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")         
+plot(roc.perf)
+abline(a=0,b=1)
+auc.perf = performance(pred, measure = "auc")
+auc.perf@y.values
+
+set.seed(42)
+nfolds = 10
+# nfolds = nrow(logdata)-1
+
+TrackingDF = NULL
+helper = NULL
+
+fold.assignment =
+  rep(1:nfolds, length.out = nrow(rocdata)) %>%
+  sample(nrow(rocdata))
+
+model.data = rocdata %>%
+  mutate(fold.assignment = fold.assignment)
+
+foldaccuracy = NULL
+# i = 3
+for(i in 1:nfolds){
+  train.data = model.data %>% filter(fold.assignment!=i)
+  test.data = model.data %>% filter(fold.assignment==i)
+  logmod=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
+  test.data = test.data %>%
+    mutate(predictions = predict.glm(logmod, test.data, type = "response")) %>%
+    mutate(declare = as.factor(as.character(ifelse(predictions<.5,0,1))))
+
+  cm = confusionMatrix(test.data$declare,test.data$WalkOrRun)
+  
+  foldaccuracy[i] = cm$overall[1]
+  
+}
+cv.accuracy = mean(foldaccuracy)
+
 
 kidsbound %>%
   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
-  group_by(Agecat,Sex) %>%
-  summarise_all(funs(sd(.)))
+  # group_by(Agecat,Sex) %>%
+  # select(select(-c(Sex))) %>%
+  # summarise_all(c(max = max,min = min))
+  # tally_all(.)
+  summarise_all(sd)
 
-kidsbound %>%
-  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
+kids %>%
+  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,WaistAvg,BMIperc,BMIcont,Sex,Agecat) %>%
   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
   group_by(Agecat,Sex) %>%
-  tally_all(.)
+  # select(predcad) %>%
+  # summarise_all(c(max = max,min = min))
+  # tally_all(.)
+  summarise_all(c(m=sd))%>%
+  filter(Sex=="M")
 
 kidsbound %>%
   mutate(jump=Run_Cadence-Walk_Cadence) %>%
   summarise(mean(jump))
+
+###### summary statistics of data
+
+
+logmod=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
+
+logdata %>%
+  mutate(prediction = predict.glm(logmod, newdata = logdata, type = "response"))%>%
+  select(prediction)
+
+kidsfinal %>%
+  mutate(agecat = )
