@@ -44,6 +44,8 @@ dim(kids)
 names(kidsnofac)
 comboInfo = findLinearCombos(kidsnofac)
 
+cor(kidsnofac$HeightCMAvg,kidsnofac$Leglength)
+
 # names(kidsnofac)
 # names(kidsnofac1)
 # kidsnofac1 = kidsnofac[, comboInfo$remove]
@@ -85,6 +87,8 @@ highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
 
 
 filteredDescr <- kidsnofac[,-c(4,5,8,10,14,15,20)]
+
+cor(kidsnofac[,c(4,5,8,10,14,15,20)])
 
 dim(filteredDescr)
 

@@ -24,8 +24,8 @@ pymax=max(kids$Run_Cadence)+100
 ui <- dashboardPage(skin = "blue",
                     
                     # Application title
-                    dashboardHeader(title="Walk to Run Transition Cadence",
-                                    titleWidth = 300),
+                    dashboardHeader(title="Preferred Transition to Run Cadence in Minors",
+                                    titleWidth = 500),
                     
                     # Sidebar with a slider input for number of bins 
                     dashboardSidebar(
@@ -94,7 +94,7 @@ output$progressBoxBMIz <- renderValueBox({
 
 output$progressBox <- renderValueBox({
   valueBox(
-    paste(round(cutresult()),"Steps"), "Expected Transition to Run Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
+    paste(round(cutresult()),"Steps"), "Preferred Transition to Run Cadence",icon = icon("thumbs-up", lib = "glyphicon"),
     color = "orange"
   )
 })
