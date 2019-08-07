@@ -361,5 +361,32 @@ logdata %>%
   mutate(prediction = predict.glm(logmod, newdata = logdata, type = "response"))%>%
   select(prediction)
 
-kidsfinal %>%
-  mutate(agecat = )
+kidsnofac %>%
+  mutate(agecat = case_when(
+    Age >=6 & Age<=8 ~ "6-8",
+    Age>8 & Age<12 ~ "9-11",
+    Age>11 & Age<15 ~ "12-14",
+    Age>14 & Age<18~ "15-17",
+    Age >17 & Age <21 ~ "18-20")
+  ) %>%
+  group_by(agecat) %>%
+  summarize(BMI=mean(BMIz), BMIsd=sd(BMIz),waist=mean(WaistAvg), waistsd=sd(WaistAvg))
+
+## Find preferred transition cadence for age ranges
+nextdata=kidsnofac %>%
+  mutate(agecat = case_when(
+    Age >=6 & Age<=8 ~ "6-8",
+    Age>8 & Age<12 ~ "9-11",
+    Age>11 & Age<15 ~ "12-14",
+    Age>14 & Age<18~ "15-17",
+    Age >17 & Age <21 ~ "18-20")
+  ) %>%
+  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg))
+  
+temp=nextdata %>% group_by(agecat) %>% summarize(Mean=signif(mean(predcad),digits=5),sdptc=sd(predcad),Range1=range(predcad)[1],Range2=range(predcad)[2],Quart=IQR(predcad))
+
+
+expand.grid(Cadence = c(seq(min(logdata$Cadence),(predcad-5),1),seq(predcad-5,predcad+5,.1),seq(predcad+5,max(logdata$Cadence),1))) %>%
+  as_tibble() 
+nextdata = nextdata %>%
+  mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
