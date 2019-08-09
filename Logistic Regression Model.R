@@ -394,3 +394,42 @@ expand.grid(Cadence = c(seq(min(logdata$Cadence),(predcad-5),1),seq(predcad-5,pr
   as_tibble() 
 nextdata = nextdata %>%
   mutate(predictions = predict.glm(logmodel, newdata = nextdata , type = "response"))
+
+
+## Linear In the Logit
+small = 
+logdata %>%
+  select(Age,HeightCMAvg,WeightKGAvg,BMIz,Cadence, WalkOrRun) %>%
+  mutate(WalkOrRun = as.numeric(as.character(WalkOrRun)))
+
+par(mfrow=c(2,2))
+
+lfit = loess(WalkOrRun~Age, data=small)
+logitlfit = log(predict(lfit)/(1-predict(lfit)))
+logitplot = data.frame(cbind(number=small$Age, logitlfit))
+logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
+plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "Age", ylab = "Loess (logit scale)")
+
+lfit = loess(WalkOrRun~HeightCMAvg, data=small)
+logitlfit = log(predict(lfit)/(1-predict(lfit)))
+logitplot = data.frame(cbind(number=small$HeightCMAvg, logitlfit))
+logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
+plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "HeightCMAvg", ylab = "Loess (logit scale)")
+
+lfit = loess(WalkOrRun~WeightKGAvg, data=small)
+logitlfit = log(predict(lfit)/(1-predict(lfit)))
+logitplot = data.frame(cbind(number=small$WeightKGAvg, logitlfit))
+logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
+plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "WeightKGAvg", ylab = "Loess (logit scale)")
+
+lfit = loess(WalkOrRun~BMIz, data=small)
+logitlfit = log(predict(lfit)/(1-predict(lfit)))
+logitplot = data.frame(cbind(number=small$BMIz, logitlfit))
+logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
+plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "BMIz", ylab = "Loess (logit scale)")
+
+lfit = loess(WalkOrRun~Cadence, data=small)
+logitlfit = log(predict(lfit)/(1-predict(lfit)))
+logitplot = data.frame(cbind(number=small$BMIz, logitlfit))
+logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
+plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "BMIz", ylab = "Loess (logit scale)")
