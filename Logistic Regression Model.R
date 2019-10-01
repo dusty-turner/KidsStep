@@ -374,7 +374,7 @@ kidsnofac %>%
     Age >17 & Age <21 ~ "18-20")
   ) %>%
   group_by(agecat) %>%
-  summarize(BMI=mean(BMIz), BMIsd=sd(BMIz),waist=mean(WaistAvg), waistsd=sd(WaistAvg))
+  summarize(BMI=mean(BMIz), BMIsd=sd(BMIz),waist=mean(WaistAvg), waistsd=sd(WaistAvg), height=round(mean(HeightCMAvg),digits=2))
 
 ## Find preferred transition cadence for age ranges
 nextdata=kidsnofac %>%
