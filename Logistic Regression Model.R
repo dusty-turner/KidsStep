@@ -184,6 +184,39 @@ summary(logmodel)
 logmodel=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
 summary(logmodel)
 
+logdatasub$BMIcont %>% sd
+
+#####
+logdatacenter =
+logdata %>%
+  select(WalkOrRun,Age,HeightCMAvg,WeightKGAvg,BMIz,Cadence) %>%
+  mutate(Age = Age-mean(Age)) %>%
+  mutate(HeightCMAvg = HeightCMAvg-mean(HeightCMAvg)) %>%
+  mutate(WeightKGAvg = WeightKGAvg-mean(WeightKGAvg)) %>%
+  mutate(BMIz = BMIz-mean(BMIz)) %>%
+  mutate(Cadence = Cadence-mean(Cadence)) 
+
+
+logmodel=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
+logmodelcenter=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodel)
+summary(logmodelcenter)
+
+logdatacenter %>% select(HeightCMAvg,WeightKGAvg,BMIz) %>% cor() %>% round(2)
+
+logmodelcenterinteraction=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence+
+                     WeightKGAvg:BMIz+HeightCMAvg:BMIz, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodelcenterinteraction)
+logmodelcenterinteraction=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence+
+                     WeightKGAvg:BMIz, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodelcenterinteraction)
+logmodelcenterinteraction=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence+
+                                HeightCMAvg:BMIz, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodelcenterinteraction)
+
+
+#####
+
 
 testingdata = 
   logdata %>%
@@ -433,3 +466,4 @@ logitlfit = log(predict(lfit)/(1-predict(lfit)))
 logitplot = data.frame(cbind(number=small$BMIz, logitlfit))
 logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
 plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "BMIz", ylab = "Loess (logit scale)")
+
