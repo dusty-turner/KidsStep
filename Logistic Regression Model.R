@@ -45,6 +45,9 @@ names(kidsnofac)
 comboInfo = findLinearCombos(kidsnofac)
 
 cor(kidsnofac$HeightCMAvg,kidsnofac$Leglength)
+cor(kidsnofac$Age,kidsnofac$HeightCMAvg)
+
+
 
 # names(kidsnofac)
 # names(kidsnofac1)
@@ -75,7 +78,7 @@ dim(kidsnofac)
 # [1]  6 13 14 17 21 24
 # leg length, last full stage, walk speed, Walk_METSAdult, Run_Speed, Run_METSAdult
 ####
-
+cor(kidsnofac)
 descrCor = cor(kidsnofac)>.9
 highCorr <- sum(abs(descrCor[upper.tri(descrCor)]) > .9)
 summary(descrCor[upper.tri(descrCor)])
@@ -87,6 +90,7 @@ highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
 
 
 filteredDescr <- kidsnofac[,-c(4,5,8,10,14,15,20)]
+kidsnofac[,c(4,5,8,10,14,15,20)]
 
 cor(kidsnofac[,c(4,5,8,10,14,15,20)])
 
@@ -370,20 +374,27 @@ kidsbound %>%
   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
   # group_by(Agecat,Sex) %>%
+  group_by(Agecat) %>%
   # select(select(-c(Sex))) %>%
   # summarise_all(c(max = max,min = min))
   # tally_all(.)
-  summarise_all(sd)
+  # summarise_all(sd)
+  summarise(across(.cols = where(is.numeric),.fns = list("sd" = ~sd(.), "mean" = ~mean(.))))
 
-kids %>%
-  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,WaistAvg,BMIperc,BMIcont,Sex,Agecat) %>%
-  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
-  group_by(Agecat,Sex) %>%
-  # select(predcad) %>%
-  # summarise_all(c(max = max,min = min))
-  # tally_all(.)
-  summarise_all(c(m=sd))%>%
-  filter(Sex=="M")
+predict.glm(object = logmod,newdata = kidsbound)
+
+
+#  june 2020 -- i dont't think we need this code anymore
+# kids %>%
+#   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,WaistAvg,BMIperc,BMIcont,Sex,Agecat) %>%
+#   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+#   group_by(Agecat,Sex) %>%
+#   # group_by(Agecat,Sex) %>%
+#   # select(predcad) %>%
+#   # summarise_all(c(max = max,min = min))
+#   # tally_all(.)
+#   summarise_all(c(m=sd))%>%
+#   filter(Sex=="M")
 
 kidsbound %>%
   mutate(jump=Run_Cadence-Walk_Cadence) %>%
