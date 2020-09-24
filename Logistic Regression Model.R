@@ -183,7 +183,7 @@ summary(logmodel)
 
 logmodel=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
 summary(logmodel)
-
+round(exp(coef(logmodel)),2)
 
 testingdata = 
   logdata %>%
@@ -433,3 +433,53 @@ logitlfit = log(predict(lfit)/(1-predict(lfit)))
 logitplot = data.frame(cbind(number=small$BMIz, logitlfit))
 logitplot = logitplot[order(logitplot$number),] #these commands put the data is ascending order, which is necessary to get a smooth curve
 plot(logitplot$number, logitplot$logitlfit, type="l", xlab = "BMIz", ylab = "Loess (logit scale)")
+
+#######################
+
+## LOOCV leave one out cross validation
+
+loocv_data <-
+logdatasub %>% 
+  select(Age,HeightCMAvg,WeightKGAvg,BMIz,Cadence,WalkOrRun) %>% 
+  arrange(Age,HeightCMAvg,WeightKGAvg,BMIz) %>% 
+  group_by(Age,HeightCMAvg,WeightKGAvg,BMIz) %>%
+  mutate(id = group_indices()) %>% 
+  ungroup()
+
+left_out <- 1
+
+loocv_fun <- function(left_out = left_out, data = loocv_data) {
+  loocv_test <-  loocv_data %>% filter(id == left_out)
+  
+  loocv_train <- loocv_data %>% filter(id != left_out)
+  
+  logmodel = glm(WalkOrRun ~ Age + HeightCMAvg + WeightKGAvg + BMIz + Cadence, data = loocv_train, family = binomial(link = "logit"))
+  # summary(logmodel)
+  
+  loocv_test <- loocv_test %>% 
+    mutate(predictions = predict.glm(logmodel, loocv_test, type = "response")) %>%
+    mutate(declare = as.factor(as.character(ifelse(predictions < .5, 0, 1))))
+  
+  cm <- confusionMatrix(loocv_test$declare, loocv_test$WalkOrRun)
+  
+  foldaccuracy <- tibble(hold_out = 1,
+                         accuracy = cm$overall[1]
+  )
+  
+  return(foldaccuracy)
+}
+
+loocv_fun(left_out = 1, data = loocv_data)
+
+1:max(loocv_data$id) %>% 
+  purrr::map_dfr(.f = ~loocv_fun(left_out = .x, data = loocv_data)) %>% 
+  as.data.frame() %>% 
+  summarise(cv_accuracy = mean(accuracy))
+
+
+############# look at only bmiz and cadence
+
+logmodel = glm(WalkOrRun ~ Age + HeightCMAvg + WeightKGAvg + BMIz + Cadence, data = logdatasub, family = binomial(link = "logit"))
+summary(logmodel)
+logmodel = glm(WalkOrRun ~ BMIz + Cadence, data = logdatasub, family = binomial(link = "logit"))
+summary(logmodel)
