@@ -45,6 +45,9 @@ names(kidsnofac)
 comboInfo = findLinearCombos(kidsnofac)
 
 cor(kidsnofac$HeightCMAvg,kidsnofac$Leglength)
+cor(kidsnofac$Age,kidsnofac$HeightCMAvg)
+
+
 
 # names(kidsnofac)
 # names(kidsnofac1)
@@ -75,7 +78,7 @@ dim(kidsnofac)
 # [1]  6 13 14 17 21 24
 # leg length, last full stage, walk speed, Walk_METSAdult, Run_Speed, Run_METSAdult
 ####
-
+cor(kidsnofac)
 descrCor = cor(kidsnofac)>.9
 highCorr <- sum(abs(descrCor[upper.tri(descrCor)]) > .9)
 summary(descrCor[upper.tri(descrCor)])
@@ -87,6 +90,7 @@ highlyCorDescr <- findCorrelation(descrCor, cutoff = .9)
 
 
 filteredDescr <- kidsnofac[,-c(4,5,8,10,14,15,20)]
+kidsnofac[,c(4,5,8,10,14,15,20)]
 
 cor(kidsnofac[,c(4,5,8,10,14,15,20)])
 
@@ -184,6 +188,41 @@ summary(logmodel)
 logmodel=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
 summary(logmodel)
 round(exp(coef(logmodel)),2)
+
+logdatasub$BMIcont %>% sd
+
+#####
+logdatacenter =
+logdata %>%
+  select(WalkOrRun,Age,HeightCMAvg,WeightKGAvg,BMIz,Cadence) %>%
+  mutate(Age = Age-mean(Age)) %>%
+  mutate(HeightCMAvg = HeightCMAvg-mean(HeightCMAvg)) %>%
+  mutate(WeightKGAvg = WeightKGAvg-mean(WeightKGAvg)) %>%
+  mutate(BMIz = BMIz-mean(BMIz)) %>%
+  mutate(Cadence = Cadence-mean(Cadence)) 
+
+
+logmodel=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdata,family=binomial(link="logit"))
+logmodelcenter=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodel)
+summary(logmodelcenter)
+
+logdatacenter %>% select(HeightCMAvg,WeightKGAvg,BMIz) %>% cor() %>% round(2)
+
+logmodelcenterinteraction=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence+
+                     WeightKGAvg:BMIz+HeightCMAvg:BMIz, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodelcenterinteraction)
+logmodelcenterinteraction=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence+
+                     WeightKGAvg:BMIz, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodelcenterinteraction)
+logmodelcenterinteraction=glm(WalkOrRun~Age+HeightCMAvg+WeightKGAvg+BMIz+Cadence+
+                                HeightCMAvg:BMIz, data=logdatacenter,family=binomial(link="logit"))
+summary(logmodelcenterinteraction)
+
+
+#####
+
+>>>>>>> a04be418494b21c9280c1ed490e12c74d7601d66
 
 testingdata = 
   logdata %>%
@@ -337,20 +376,27 @@ kidsbound %>%
   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,Sex,Agecat) %>%
   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
   # group_by(Agecat,Sex) %>%
+  group_by(Agecat) %>%
   # select(select(-c(Sex))) %>%
   # summarise_all(c(max = max,min = min))
   # tally_all(.)
-  summarise_all(sd)
+  # summarise_all(sd)
+  summarise(across(.cols = where(is.numeric),.fns = list("sd" = ~sd(.), "mean" = ~mean(.))))
 
-kids %>%
-  select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,WaistAvg,BMIperc,BMIcont,Sex,Agecat) %>%
-  mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
-  group_by(Agecat,Sex) %>%
-  # select(predcad) %>%
-  # summarise_all(c(max = max,min = min))
-  # tally_all(.)
-  summarise_all(c(m=sd))%>%
-  filter(Sex=="M")
+predict.glm(object = logmod,newdata = kidsbound)
+
+
+#  june 2020 -- i dont't think we need this code anymore
+# kids %>%
+#   select(Age,BMIz,BMIcont,HeightCMAvg,WeightKGAvg,WaistAvg,BMIperc,BMIcont,Sex,Agecat) %>%
+#   mutate(predcad = -1.52091 * (-140.562 + 0.9804*Age + 4.4953*BMIz + 0.317*HeightCMAvg - 0.362*WeightKGAvg)) %>%
+#   group_by(Agecat,Sex) %>%
+#   # group_by(Agecat,Sex) %>%
+#   # select(predcad) %>%
+#   # summarise_all(c(max = max,min = min))
+#   # tally_all(.)
+#   summarise_all(c(m=sd))%>%
+#   filter(Sex=="M")
 
 kidsbound %>%
   mutate(jump=Run_Cadence-Walk_Cadence) %>%
@@ -374,7 +420,7 @@ kidsnofac %>%
     Age >17 & Age <21 ~ "18-20")
   ) %>%
   group_by(agecat) %>%
-  summarize(BMI=mean(BMIz), BMIsd=sd(BMIz),waist=mean(WaistAvg), waistsd=sd(WaistAvg))
+  summarize(BMI=mean(BMIz), BMIsd=sd(BMIz),waist=mean(WaistAvg), waistsd=sd(WaistAvg), height=round(mean(HeightCMAvg),digits=2))
 
 ## Find preferred transition cadence for age ranges
 nextdata=kidsnofac %>%
